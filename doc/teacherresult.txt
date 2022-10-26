@@ -1,0 +1,187 @@
+MacBook-Air-5:protfold filiot$ python3.10 folder.py -t
+Let's test your code
+
+****** Test de satisfiabilite ******
+
+sequence: 00 borne: 0 ---> succes
+sequence: 1 borne: 0 ---> succes
+sequence: 01000 borne: 0 ---> succes
+sequence: 00110000 borne: 0 ---> succes
+sequence: 11 borne: 0 ---> succes
+sequence: 111 borne: 1 ---> succes
+sequence: 1111 borne: 2 ---> succes
+sequence: 1111111 borne: 4 ---> succes
+sequence: 111111111111111 borne: 11 ---> succes
+sequence: 1011011011 borne: 3 ---> succes
+sequence: 011010111110011 borne: 6 ---> succes
+sequence: 01101011111000101 borne: 5 ---> succes
+sequence: 0110111001000101 borne: 4 ---> succes
+sequence: 000000000111000000110000000 borne: 2 ---> succes
+sequence: 100010100 borne: 0 ---> succes
+sequence: 01101011111110111 borne: 8 ---> succes
+sequence: 10 borne: 0 ---> succes
+sequence: 10 borne: 0 ---> succes
+sequence: 001 borne: 0 ---> succes
+sequence: 000 borne: 0 ---> succes
+sequence: 1001 borne: 0 ---> succes
+sequence: 1111 borne: 2 ---> succes
+sequence: 00111 borne: 1 ---> succes
+sequence: 01001 borne: 0 ---> succes
+sequence: 111010 borne: 1 ---> succes
+sequence: 110110 borne: 1 ---> succes
+sequence: 0010110 borne: 1 ---> succes
+sequence: 0000001 borne: 0 ---> succes
+sequence: 01101000 borne: 1 ---> succes
+sequence: 10011111 borne: 3 ---> succes
+sequence: 011001101 borne: 2 ---> succes
+sequence: 000110111 borne: 2 ---> succes
+sequence: 0011000010 borne: 1 ---> succes
+sequence: 1000010100 borne: 1 ---> succes
+sequence: 11000111000 borne: 2 ---> succes
+sequence: 01010101110 borne: 2 ---> succes
+sequence: 011001100010 borne: 2 ---> succes
+sequence: 010011100010 borne: 2 ---> succes
+sequence: 1110000110011 borne: 4 ---> succes
+sequence: 1000101110001 borne: 2 ---> succes
+sequence: 11010101011110 borne: 5 ---> succes
+sequence: 01000101000101 borne: 0 ---> succes
+sequence: 111011100100000 borne: 4 ---> succes
+sequence: 000001100111010 borne: 3 ---> succes
+sequence: 0110111110011000 borne: 5 ---> succes
+sequence: 0011110010110110 borne: 5 ---> succes
+sequence: 01111100010010101 borne: 5 ---> succes
+sequence: 10011011011100101 borne: 6 ---> succes
+sequence: 101111101100101001 borne: 6 ---> succes
+sequence: 110101011010101010 borne: 4 ---> succes
+sequence: 1111101010000111001 borne: 7 ---> succes
+sequence: 0111000101001000111 borne: 5 ---> succes
+sequence: 10111110100001010010 borne: 6 ---> succes
+sequence: 10110011010010001110 borne: 5 ---> succes
+
+****** Test de d'insatisfiabilite ******
+
+sequence: 00 borne: 1 ---> succes
+sequence: 1 borne: 1 ---> succes
+sequence: 01000 borne: 1 ---> succes
+sequence: 00110000 borne: 2 ---> succes
+sequence: 11 borne: 2 ---> succes
+sequence: 111 borne: 3 ---> succes
+sequence: 1111 borne: 5 ---> succes
+sequence: 1111111 borne: 9 ---> succes
+sequence: 111111111111111 borne: 23 ---> succes
+sequence: 1011011011 borne: 8 ---> timeout
+sequence: 011010111110011 borne: 13 ---> succes
+sequence: 01101011111000101 borne: 12 ---> succes
+sequence: 0110111001000101 borne: 9 ---> succes
+sequence: 000000000111000000110000000 borne: 6 ---> succes
+sequence: 100010100 borne: 1 ---> succes
+sequence: 01101011111110111 borne: 18 ---> succes
+sequence: 10 borne: 1 ---> succes
+sequence: 10 borne: 1 ---> succes
+sequence: 001 borne: 1 ---> succes
+sequence: 000 borne: 1 ---> succes
+sequence: 1001 borne: 2 ---> succes
+sequence: 1111 borne: 5 ---> succes
+sequence: 00111 borne: 3 ---> succes
+sequence: 01001 borne: 2 ---> succes
+sequence: 111010 borne: 4 ---> succes
+sequence: 110110 borne: 4 ---> succes
+sequence: 0010110 borne: 3 ---> succes
+sequence: 0000001 borne: 1 ---> succes
+sequence: 01101000 borne: 3 ---> succes
+sequence: 10011111 borne: 8 ---> succes
+sequence: 011001101 borne: 6 ---> succes
+sequence: 000110111 borne: 6 ---> succes
+sequence: 0011000010 borne: 3 ---> succes
+sequence: 1000010100 borne: 3 ---> succes
+sequence: 11000111000 borne: 6 ---> timeout
+sequence: 01010101110 borne: 5 ---> succes
+sequence: 011001100010 borne: 6 ---> timeout
+sequence: 010011100010 borne: 6 ---> timeout
+sequence: 1110000110011 borne: 9 ---> succes
+sequence: 1000101110001 borne: 5 ---> succes
+sequence: 11010101011110 borne: 11 ---> succes
+sequence: 01000101000101 borne: 1 ---> succes
+sequence: 111011100100000 borne: 9 ---> succes
+sequence: 000001100111010 borne: 7 ---> succes
+sequence: 0110111110011000 borne: 12 ---> succes
+sequence: 0011110010110110 borne: 12 ---> succes
+sequence: 01111100010010101 borne: 12 ---> succes
+sequence: 10011011011100101 borne: 13 ---> succes
+sequence: 101111101100101001 borne: 14 ---> succes
+sequence: 110101011010101010 borne: 10 ---> succes
+sequence: 1111101010000111001 borne: 15 ---> succes
+sequence: 0111000101001000111 borne: 12 ---> succes
+sequence: 10111110100001010010 borne: 13 ---> succes
+sequence: 10110011010010001110 borne: 12 ---> timeout
+
+****** Test de calcul du meilleur score ******
+
+sequence: 00 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 1 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 01000 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 00110000 borne attendue: 1 borne retournee: 1 ---> succes
+sequence: 11 borne attendue: 1 borne retournee: 1 ---> succes
+sequence: 111 borne attendue: 2 borne retournee: 2 ---> succes
+sequence: 1111 borne attendue: 4 borne retournee: 4 ---> succes
+sequence: 1111111 borne attendue: 8 borne retournee: 8 ---> succes
+sequence: 111111111111111 borne attendue: 22 borne retournee: 22 ---> succes
+sequence: 1011011011 borne attendue: 7 ---> timeout
+sequence: 011010111110011 borne attendue: 12 borne retournee: 12 ---> succes
+sequence: 01101011111000101 borne attendue: 11 borne retournee: 11 ---> succes
+sequence: 0110111001000101 borne attendue: 8 borne retournee: 8 ---> succes
+sequence: 000000000111000000110000000 borne attendue: 5 borne retournee: 5 ---> succes
+sequence: 100010100 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 01101011111110111 borne attendue: 17 ---> timeout
+sequence: 10 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 10 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 001 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 000 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 1001 borne attendue: 1 borne retournee: 1 ---> succes
+sequence: 1111 borne attendue: 4 borne retournee: 4 ---> succes
+sequence: 00111 borne attendue: 2 borne retournee: 2 ---> succes
+sequence: 01001 borne attendue: 1 borne retournee: 1 ---> succes
+sequence: 111010 borne attendue: 3 borne retournee: 3 ---> succes
+sequence: 110110 borne attendue: 3 borne retournee: 3 ---> succes
+sequence: 0010110 borne attendue: 2 borne retournee: 2 ---> succes
+sequence: 0000001 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 01101000 borne attendue: 2 borne retournee: 2 ---> succes
+sequence: 10011111 borne attendue: 7 borne retournee: 7 ---> succes
+sequence: 011001101 borne attendue: 5 ---> timeout
+sequence: 000110111 borne attendue: 5 borne retournee: 5 ---> succes
+sequence: 0011000010 borne attendue: 2 borne retournee: 2 ---> succes
+sequence: 1000010100 borne attendue: 2 borne retournee: 2 ---> succes
+sequence: 11000111000 borne attendue: 5 ---> timeout
+sequence: 01010101110 borne attendue: 4 borne retournee: 4 ---> succes
+sequence: 011001100010 borne attendue: 5 ---> timeout
+sequence: 010011100010 borne attendue: 5 ---> timeout
+sequence: 1110000110011 borne attendue: 8 borne retournee: 8 ---> succes
+sequence: 1000101110001 borne attendue: 4 borne retournee: 4 ---> succes
+sequence: 11010101011110 borne attendue: 10 borne retournee: 10 ---> succes
+sequence: 01000101000101 borne attendue: 0 borne retournee: 0 ---> succes
+sequence: 111011100100000 borne attendue: 8 borne retournee: 8 ---> succes
+sequence: 000001100111010 borne attendue: 6 borne retournee: 6 ---> succes
+sequence: 0110111110011000 borne attendue: 11 borne retournee: 11 ---> succes
+sequence: 0011110010110110 borne attendue: 11 borne retournee: 11 ---> succes
+sequence: 01111100010010101 borne attendue: 11 borne retournee: 11 ---> succes
+sequence: 10011011011100101 borne attendue: 12 borne retournee: 12 ---> succes
+sequence: 101111101100101001 borne attendue: 13 borne retournee: 13 ---> succes
+sequence: 110101011010101010 borne attendue: 9 borne retournee: 9 ---> succes
+sequence: 1111101010000111001 borne attendue: 14 borne retournee: 14 ---> succes
+sequence: 0111000101001000111 borne attendue: 11 borne retournee: 11 ---> succes
+sequence: 10111110100001010010 borne attendue: 12 ---> timeout
+sequence: 10110011010010001110 borne attendue: 11 ---> timeout
+
+RESULTATS TESTS
+
+Instances avec solutions correctement repondues: 54 sur 54 tests realises
+Nombre de timeouts: 0
+Nombre d'exceptions: 0
+
+Instances sans solution correctement repondues: 49 sur 54 tests realises
+Nombre de timeouts: 5
+Nombre d'exceptions: 0
+
+Meilleurs scores correctement calcules: 46 sur 54 tests realises
+Nombre de timeouts: 8
+Nombre d'exceptions: 0
