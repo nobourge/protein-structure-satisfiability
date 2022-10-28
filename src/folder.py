@@ -139,6 +139,11 @@ def print_solution(seq,
     print("Score: " + str(score))
     print("Solution: " + str(sol))
 
+    for i in range(len(seq)):
+        for j in range(len(seq)):
+            print(sol[i][j], end=" ")
+        print()
+
 
 def solve(seq,
           matrix_size,
@@ -209,9 +214,7 @@ def exist_sol(seq,
 # vous pouvez utiliser les methodes de la classe pysat.card pour creer des contraintes de cardinalites (au moins k, au plus k,...)
 
 
-def dichotomy(seq,
-              lower_bound,
-              upper_bound):
+def dichotomy(seq):
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution n'existe, retourne None
     # cette fonction utilise la methode de dichotomie pour trouver un plongement de score au moins 'lower_bound'
@@ -227,11 +230,44 @@ def incremental_search(seq,
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution n'existe, retourne None
     # cette fonction utilise une recherche incrémentale pour trouver un plongement de score au moins 'lower_bound'
-    # A COMPLETER
 
+    sol = None
+    bound = lower_bound
+    while bound <= upper_bound:
+        if exist_sol(seq, bound):
+            sol = solve(seq,
+                         )
+            bound += 1
+        else:
+            print("Pas de solution")
+            return None
 
+    return sol
 
-    return None
+def score(seq,
+          sol):
+    # retourne le score d'un plongement
+
+# Le score d’un plongement P de p, noté score(p, P) est défini par
+# score(p, P) =
+# |{{i, j} | i, j ∈ Pos(p),
+    #       i != j,
+    #       P(i) et P(j) sont voisins,
+    # p[i] = p[j] = 1}|
+# Autrement dit, c’est le nombre de
+    # paires de positions différentes i, j de p,
+# étiquetées par 1 dans p,
+    # et qui se plongent vers des points voisins dans N²
+
+    score = 0
+    for aa1_index in range(len(seq)):
+        for aa2_index in range(len(seq)):
+            if aa1_index != aa2_index and \
+                    seq[aa1_index] == 1 and \
+                    seq[aa2_index] == 1 and \
+                    sol[aa1_index][aa2_index] == 1:
+                score += 1
+    return score
 
 def compute_max_score(seq):
     # calcul le meilleur score pour la sequence seq,
@@ -240,15 +276,7 @@ def compute_max_score(seq):
     #                   incrementale si l'option -i est active
     score_best = 0
 
-    if incremental:
-        score_best = incremental(seq
-                                 , 0
-                                 , len(seq) ** 2
-                                 )
-    else:
-        score_best = dichotomy(seq
-                               , 0
-                               , len(seq) ** 2
+    score_best = dichotomy(seq
                                )
 
     return(score_best)
@@ -394,7 +422,10 @@ elif not (incremental):
     # si l'option d'affichage est active
     #   on affiche egalement un plongement de score maximal
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
-    # A COMPLETER
+
+    test_code()
+
+    # compute_max_score(options.sequence)
     print("FIN DU CALCUL DU MEILLEUR SCORE")
     
 elif not test:
