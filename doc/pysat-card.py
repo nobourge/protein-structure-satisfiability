@@ -8,14 +8,41 @@ from pysat.card import ITotalizer
 # and ladder
 # encodings can only deal with AtMost1 constraints
 cnf = CardEnc.atmost(lits=[1, 2, 3],
+                        # bound=1,
                      encoding=EncType.pairwise)
-
 print(cnf.clauses)
 # [[-1, -2], [-1, -3], [-2, -3]]
 
+cnf = CardEnc.atmost(lits=[1, 2, 3])
+print(cnf.clauses)
+cnf = CardEnc.atmost(lits=[1, 2, 3,4])
+print(cnf.clauses)
+cnf = CardEnc.atmost(lits=[1, 2, 3,4,5])
+print(cnf.clauses)
+cnf = CardEnc.atmost(lits=[1, 2, 3,4,5,6])
+print(cnf.clauses)
+
+cnf = CardEnc.atmost(lits=[-3,1,2])
+print(cnf.clauses)
+
+cnf = CardEnc.atmost(lits=[1, 2, 3],
+                        # bound=1,
+                     encoding=1)
+
+print(cnf.clauses)
+# [[-1, 4], [-4, 5], [-2, -4], [-2, 5], [-3, -5]]
+
 
 cnf = CardEnc.equals(lits=[1, 2, 3],
+                        # bound=1,
                      encoding=EncType.pairwise)
+print(cnf.clauses)
+# [[1, 2, 3],
+# [-1, -2], [-1, -3], [-2, -3]]
+#
+cnf = CardEnc.equals(lits=[1, 2, 3],
+                        # bound=1,
+                     encoding=1)
 print(cnf.clauses)
 # [[1, 2, 3],
 # [-1, -2], [-1, -3], [-2, -3]]
@@ -26,13 +53,7 @@ cnf = CardEnc.atmost(lits=[1, 2, 3],
                      encoding=EncType.pairwise)
 print(cnf.clauses)
 # [[-1, -2, -3]]
-#
 
-cnf = CardEnc.atmost(lits=[1, 2, 3],
-                     bound=6,
-                     encoding=EncType.pairwise)
-print(cnf.clauses)
-# []
 
 cnf = CardEnc.atmost(lits=[1, 2, 3],
                      bound=6,

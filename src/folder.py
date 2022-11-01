@@ -71,10 +71,11 @@ test = options.test
 
  #clauses = contraintes
 
+
 # sequence elements 2 by 2 are neighbors
-def sequence_neighbors(seq,
-                       cnf,
-                       vpool):
+def sequence_neighboring_maintain(seq,
+                                  cnf,
+                                  vpool):
     for i in range(len(seq)-2):
         set_neighbors(seq,
                       seq[i],
@@ -101,19 +102,22 @@ def set_neighbors(seq,
                         # if m[i][j] == a and m[k][l] == b:
                         #     cnf.append([-vpool.id(m[i][j]),
                         #                 -vpool.id(m[k][l])])
-                        cnf.append([vpool.id((a, i, j,
-                                              b, k, l))])
+                        cnf.append([vpool.id((a, i, j)),
+                                    vpool.id((b, k, l))])
 
+def max1value_per_location(seq,
+                  cnf,
+                  vpool,
+                  a,
+                  b):
+    print("Au plus une valeur par case")
 
-# def AtLeast(X, k):
-#     # retourne un ensemble de clauses card(X, k),
-#     valids_quantity = 0
-#
-#     if valids_quantity < k:
-#         return []
-#
-#     #return X's valids
-#     return [[X[0]]] + AtLeast(X[1:], k - 1)
+    n=len(seq)
+    for i in range(n):
+        for j in range(n):
+            for v1 in range(n):
+                for v2 in range(v1+1,n):
+                    cnf.append([-vpool.id((i,j,v1+1)),-vpool.id((i,j,v2+1))])
 
 
 #  fonction card
@@ -128,9 +132,30 @@ def card(X,
          cnf):
     cnf.append(CardEnc.atleast(lits=X
                                , bound=k
-                               , encoding=EncType.pairwise
+                               # , encoding=EncType.pairwise
                                ))
     # return AtLeast(X, k)
+
+def set_clauses(seq,
+                cnf,
+                vpool):
+    # sequence elements 2 by 2 are neighbors
+    sequence_neighboring_maintain(seq,
+                                  cnf,
+                                  vpool)
+    # au plus une valeur par case
+    max1value_per_location(seq,
+                           cnf,
+                           vpool)
+    # au moins une valeur par ligne
+    min1value_per_line(seq,
+                       cnf,
+                       vpool)
+    # au moins une valeur par colonne
+    min1value_per_column(seq,
+                         cnf,
+                         vpool)
+    return cnf
 
 def print_solution(seq,
                    score,
@@ -202,6 +227,14 @@ def exist_sol(seq,
     matrix_size = len(seq)
 
     score = 0
+
+    # contraintes ##########################
+    cnf = set_clauses(seq,
+                cnf,
+                vpool,
+                matrix_size)
+
+    # print("Clauses: " + str(cnf))
 
     score = solve(seq,
                   bound,
