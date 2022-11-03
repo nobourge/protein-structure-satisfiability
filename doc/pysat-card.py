@@ -1,6 +1,9 @@
 from pysat.card import *
 from pysat.card import ITotalizer
 
+
+print(1)
+
 # bound = 1
 # Note that the implementation of the
 # pairwise,

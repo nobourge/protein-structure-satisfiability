@@ -2,6 +2,8 @@
 # PROJET: repliage de proteines
 
 # necessite l'installation de la librairie PySAT et de la librairie func_timeout
+import sys
+
 from pysat.solvers import Minisat22
 from pysat.solvers import Glucose4
 from pysat.formula import CNF
@@ -10,21 +12,20 @@ from pysat.card import *
 from optparse import OptionParser
 import func_timeout
 
-
 ##### OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE ###############
 
 # Usage: folder.py [options]
 
 # Options:
-  # -h, --help            show this help message and exit
-  # -s SEQ, --sequence=SEQ
-                        # specify the input sequence
-  # -b BOUND, --bound=BOUND
-                        # specify a lower bound on the score
-  # -p, --print           print solution
-  # -i, --incremental     incremental mode: try small bounds first and increment
-  # -v, --verbose         verbose mode
-  # -t, --test            testing mode
+# -h, --help            show this help message and exit
+# -s SEQ, --sequence=SEQ
+# specify the input sequence
+# -b BOUND, --bound=BOUND
+# specify a lower bound on the score
+# -p, --print           print solution
+# -i, --incremental     incremental mode: try small bounds first and increment
+# -v, --verbose         verbose mode
+# -t, --test            testing mode
 
 # on doit TOUJOURS donner une sequence
 # * lorsqu'une borne est donnee,
@@ -46,78 +47,95 @@ import func_timeout
 #   alors le test s'arrete et la fonction passe au test suivant
 
 parser = OptionParser()
-parser.add_option("-s", "--sequence", dest="seq", action="store", 
+parser.add_option("-s", "--sequence", dest="seq", action="store",
                   help="specify the input sequence")
-parser.add_option("-b", "--bound", dest="bound", action="store", 
+parser.add_option("-b", "--bound", dest="bound", action="store",
                   help="specify a lower bound on the score", type="int")
-parser.add_option("-p", "--print", dest="affichage_sol", action="store_true", 
-                  help="print solution",default=False)
-parser.add_option("-i", "--incremental", dest="incremental", action="store_true", 
-                  help="incremental mode: try small bounds first and increment",default=False)
-parser.add_option("-v", "--verbose", dest="verbose", action="store_true", 
-                  help="verbose mode",default=False)
-parser.add_option("-t", "--test", dest="test", action="store_true", 
-                  help="testing mode",default=False)
+parser.add_option("-p", "--print", dest="affichage_sol",
+                  action="store_true",
+                  help="print solution", default=False)
+parser.add_option("-i", "--incremental", dest="incremental",
+                  action="store_true",
+                  help="incremental mode: try small bounds first and increment",
+                  default=False)
+parser.add_option("-v", "--verbose", dest="verbose",
+                  action="store_true",
+                  help="verbose mode", default=False)
+parser.add_option("-t", "--test", dest="test", action="store_true",
+                  help="testing mode", default=False)
 
 (options, args) = parser.parse_args()
-    
+
 affichage_sol = options.affichage_sol
 verb = options.verbose
 incremental = options.incremental
 test = options.test
 
+
 ###############################################################################################
 
 
- #clauses = contraintes
+# clauses = contraintes
 
 
 # sequence elements 2 by 2 are neighbors
-def sequence_neighboring_maintain(seq,
-                                  cnf,
+def sequence_neighboring_maintain(n
+                                  , cnf,
                                   vpool):
-    for i in range(len(seq)-2):
-        set_neighbors(seq,
-                      seq[i],
-                      seq[i+1],
-                      cnf,
-                      vpool)
+    print()
+    print("Les elements de la sequence sont voisins")
 
-def set_neighbors(seq,
+    for i in range(n - 1):
+        set_neighbors(n,
+                      cnf,
+                      vpool,
+                      i,
+                      i + 1,
+                      )
+
+
+def set_neighbors(n,
                   cnf,
                   vpool,
                   a,
                   b):
-
+    print("set_neighbors", a, b)
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|,
     # |j − l|) ∈ {(0, 1), (1, 0)}.
-    for i in range(len(seq) - 1):
-        for j in range(len(seq) - 1):
-            for k in range(len(seq) - 1):
-                for l in range(len(seq) - 1):
-                    if (abs(i - k) == 0 and
-                        abs(j - l) == 1) or (abs(i - k) == 1 and
-                                             abs(j - l) == 0):
-                        # if m[i][j] == a and m[k][l] == b:
-                        #     cnf.append([-vpool.id(m[i][j]),
-                        #                 -vpool.id(m[k][l])])
-                        cnf.append([vpool.id((a, i, j)),
-                                    vpool.id((b, k, l))])
-
-def max1value_per_location(seq,
-                  cnf,
-                  vpool,
-                  a,
-                  b):
-    print("Au plus une valeur par case")
-
-    n=len(seq)
     for i in range(n):
         for j in range(n):
-            for v1 in range(n):
-                for v2 in range(v1+1,n):
-                    cnf.append([-vpool.id((i,j,v1+1)),-vpool.id((i,j,v2+1))])
+            d = [-vpool.id((i, j, a))]
+            for k in range(n):
+                for l in range(n):
+                    print("i = ", i
+                          , "\nj = ", j
+                          , "\nk = ", k
+                          , "\nl = ", l)
+                    if (abs(i - k) == 0 and
+                        abs(j - l) == 1) or \
+                            (abs(i - k) == 1 and
+                             abs(j - l) == 0):
+                        print("              i, j, k, l", i, j, k, l)
+                        d.append(vpool.id((k, l, b)))
+            print("d = ", d)
+            cnf.append(d)
+
+
+def max1value_per_location(seq,
+                           cnf,
+                           vpool
+                           ):
+    print()
+    print("Au plus une valeur par case")
+
+    n = len(seq)
+    for i in range(n):
+        for j in range(n):
+            for index1 in range(n):
+                for index2 in range(index1 + 1, n):
+                    cnf.append([-vpool.id((i, j, index1 + 1))
+                                   , -vpool.id((i, j, index2 + 1))])
 
 
 #  fonction card
@@ -136,47 +154,90 @@ def card(X,
                                ))
     # return AtLeast(X, k)
 
+
 def set_clauses(seq,
+                n,
                 cnf,
-                vpool):
+                vpool
+                ):
     # sequence elements 2 by 2 are neighbors
-    sequence_neighboring_maintain(seq,
+    sequence_neighboring_maintain(n,
                                   cnf,
-                                  vpool)
+                                  vpool
+                                  )
     # au plus une valeur par case
     max1value_per_location(seq,
                            cnf,
-                           vpool)
-    # au moins une valeur par ligne
-    min1value_per_line(seq,
-                       cnf,
-                       vpool)
-    # au moins une valeur par colonne
-    min1value_per_column(seq,
-                         cnf,
-                         vpool)
+                           vpool
+                           )
+    # # au moins une valeur par ligne
+    # min1value_per_line(seq,
+    #                    cnf,
+    #                    vpool)
+    # # au moins une valeur par colonne
+    # min1value_per_column(seq,
+    #                      cnf,
+    #                      vpool)
     return cnf
 
-def print_solution(seq,
-                   score,
-                   sol): # affiche la solution
-    print("Sequence: " + str(seq))
-    print("Score: " + str(score))
-    print("Solution: " + str(sol))
 
-    for i in range(len(seq)):
-        for j in range(len(seq)):
-            print(sol[i][j], end=" ")
+# print the variables of the solution
+def print_solution_variables(seq,
+                             n,
+                             vpool,
+                             sol):
+    print("Solution variables:")
+    for i in range(n):
+        for j in range(n):
+            for v in range(n):
+                print("value : ", v)
+                # print("value", vpool.id((i, j, v + 1)), "=",
+                # sol[vpool.id((i, j, v + 1))])
+                if vpool.id((i, j, v)) in sol:
+                    print(i, j, seq[v])
+
+
+def print_solution(seq,
+                   n,
+                   vpool,
+                   sol):  # affiche la solution
+
+    print_solution_variables(seq,
+                             n,
+                             vpool,
+                             sol)
+    print("matrix representation:")
+    for i in range(n):
+        for j in range(n):
+            location_valued = False
+            for v in range(n):
+                if vpool.id((i, j, v)) in sol:
+                    # if vpool.id((i,j,v)) in sol.get_model():
+                    print(seq[v], end=" ")
+                    location_valued = True
+            if not location_valued:
+                print("* ", end='')
         print()
 
 
 def solve(seq,
-          matrix_size,
-          bound,
-          vpool,
-          cnf):
+          bound
+          ):
     # retourne un plongement de score au moins 'bound'
     # si aucune solution n'existe, retourne None
+
+    # variables ##########################
+    vpool = IDPool(
+        start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
+    cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
+
+    n = len(seq)
+
+    # contraintes ##########################
+    cnf = set_clauses(seq,
+                      n,
+                      cnf,
+                      vpool)
 
     solver = Glucose4(
         use_timer=True)  # MiniSAT
@@ -188,62 +249,49 @@ def solve(seq,
     print("Satisfaisable : " + str(resultat))
     print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
     if resultat:
+        affichage_sol = True
         if affichage_sol:
-            # print("\nVoici une solution: \n")
+            print("\nVoici une solution: \n")
             interpretation = solver.get_model()  # extracting a
             # satisfying assignment for CNF formula given to the solver
             # A model is provided if a previous SAT call returned True.
             # Otherwise, None is reported.
             # Return type list(int) or None
 
+            if interpretation is not None:
+                print("Interpretation: ", interpretation)
+
             # cette interpretation est longue,
             # on va filtrer les valeurs positives
             # (il y a en line_quantity fois moins)
             filtered_interpretation = list(
                 filter(lambda x: x >= 0, interpretation))
-            print_solution(filtered_interpretation,
-                           # steps_quantity,
-                           # line_quantity,
-                           # column_quantity,
-                           matrix_size,
-                           # etats_id,
+            print_solution(seq,
+                           n,
                            vpool,
-                           # etats
+                           filtered_interpretation
+                           # resultat
                            )
+        return resultat
     return None
+
 
 def exist_sol(seq,
               bound):
     # retourne True si et seulement si il
     # existe un plongement de score au moins 'bound'
-# A COMPLETER
+    # A COMPLETER
 
     # clauses = card(X, k)
-    # variables ##########################
-    vpool = IDPool(
-        start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
-    cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
 
-    matrix_size = len(seq)
-
-    score = 0
-
-    # contraintes ##########################
-    cnf = set_clauses(seq,
-                cnf,
-                vpool,
-                matrix_size)
-
-    # print("Clauses: " + str(cnf))
-
-    score = solve(seq,
-                  bound,
-                  vpool,
-                  cnf)
-
-    if score >= bound:
+    if solve(seq,
+             bound,
+             ):
+        print("Il existe une solution")
         return True
     return False
+
+
 # vous pouvez utiliser les methodes de la classe pysat.card pour creer des contraintes de cardinalites (au moins k, au plus k,...)
 
 
@@ -253,43 +301,50 @@ def dichotomy(seq):
     # cette fonction utilise la methode de dichotomie pour trouver un plongement de score au moins 'lower_bound'
     # A COMPLETER
 
-
-
     return None
 
-def incremental_search(seq,
-                       lower_bound,
-                       upper_bound):
+
+def incremental_search(seq
+                       , lower_bound
+                       ):
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution n'existe, retourne None
-    # cette fonction utilise une recherche incrémentale pour trouver un plongement de score au moins 'lower_bound'
+    # cette fonction utilise une recherche incrémentale
+    # pour trouver un plongement de score au moins 'lower_bound'
 
-    sol = None
     bound = lower_bound
-    while bound <= upper_bound:
-        if exist_sol(seq, bound):
-            sol = solve(seq,
-                         )
-            bound += 1
-        else:
-            print("Pas de solution")
-            return None
+    sol = exist_sol(seq
+                    , bound)
+    while sol:
+        sol = exist_sol(seq
+                        , bound)
+        # tant qu'il existe un plongement de score au moins 'bound'
+        bound += 1
 
-    return sol
+    if bound > lower_bound:
+        sol = solve(seq
+                    , bound - 1
+                    )
+        return sol
+
+    else:
+        print("Pas de solution")
+        return None
+
 
 def score(seq,
           sol):
     # retourne le score d'un plongement
 
-# Le score d’un plongement P de p, noté score(p, P) est défini par
-# score(p, P) =
-# |{{i, j} | i, j ∈ Pos(p),
+    # Le score d’un plongement P de p, noté score(p, P) est défini par
+    # score(p, P) =
+    # |{{i, j} | i, j ∈ Pos(p),
     #       i != j,
     #       P(i) et P(j) sont voisins,
     # p[i] = p[j] = 1}|
-# Autrement dit, c’est le nombre de
+    # Autrement dit, c’est le nombre de
     # paires de positions différentes i, j de p,
-# étiquetées par 1 dans p,
+    # étiquetées par 1 dans p,
     # et qui se plongent vers des points voisins dans N²
 
     score = 0
@@ -302,34 +357,60 @@ def score(seq,
                 score += 1
     return score
 
-def compute_max_score(seq):
+
+def compute_max_score(seq
+                      , method
+                      ):
     # calcul le meilleur score pour la sequence seq,
     # il doit donc retourne un entier,
     # methode utilisee: dichotomie par defaut,
     #                   incrementale si l'option -i est active
     score_best = 0
 
-    score_best = dichotomy(seq
-                               )
+    # si l'option -i est active, on utilise la recherche incrémentale
+    if method == "incremental":
+        score_best = incremental_search(seq,
+                                        0
+                                        )
+    else:
+        score_best = dichotomy(seq)
 
-    return(score_best)
+    return (score_best)
 
-####################################################################        
+
+####################################################################
 ########### CE CODE NE DOIT PAS ETRE MODIFIE #######################
 ####################################################################
 def test_code():
-    examples = [('00',0),
+    examples = [('00', 0),
                 ('1', 0),
-                ('01000',0),
-                ('00110000',1),('11',1),('111',2),('1111',4),('1111111',8),("111111111111111",22), ("1011011011", 7),
-                ("011010111110011", 12), ("01101011111000101",11), ("0110111001000101", 8), ("000000000111000000110000000",5), ('100010100', 0),
-                ('01101011111110111', 17),('10', 0), ('10', 0), ('001', 0), ('000', 0), ('1001', 1), ('1111', 4), ('00111', 2), ('01001', 1),
-                ('111010', 3), ('110110', 3), ('0010110', 2), ('0000001', 0), ('01101000', 2), ('10011111', 7), ('011001101', 5), ('000110111', 5),
-                ('0011000010', 2), ('1000010100', 2), ('11000111000', 5), ('01010101110', 4), ('011001100010', 5), ('010011100010', 5),
-                ('1110000110011', 8), ('1000101110001', 4), ('11010101011110', 10), ('01000101000101', 0), ('111011100100000', 8),
-                ('000001100111010', 6), ('0110111110011000', 11), ('0011110010110110', 11), ('01111100010010101', 11), ('10011011011100101', 12),
-                ('101111101100101001', 13), ('110101011010101010', 9), ('1111101010000111001', 14), ('0111000101001000111', 11),
-                ('10111110100001010010', 12), ('10110011010010001110', 11)]
+                ('01000', 0),
+                ('00110000', 1), ('11', 1), ('111', 2), ('1111', 4),
+                ('1111111', 8), ("111111111111111", 22),
+                ("1011011011", 7),
+                ("011010111110011", 12), ("01101011111000101", 11),
+                ("0110111001000101", 8),
+                ("000000000111000000110000000", 5), ('100010100', 0),
+                ('01101011111110111', 17), ('10', 0), ('10', 0),
+                ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
+                ('00111', 2), ('01001', 1),
+                ('111010', 3), ('110110', 3), ('0010110', 2),
+                ('0000001', 0), ('01101000', 2), ('10011111', 7),
+                ('011001101', 5), ('000110111', 5),
+                ('0011000010', 2), ('1000010100', 2),
+                ('11000111000', 5), ('01010101110', 4),
+                ('011001100010', 5), ('010011100010', 5),
+                ('1110000110011', 8), ('1000101110001', 4),
+                ('11010101011110', 10), ('01000101000101', 0),
+                ('111011100100000', 8),
+                ('000001100111010', 6), ('0110111110011000', 11),
+                ('0011110010110110', 11), ('01111100010010101', 11),
+                ('10011011011100101', 12),
+                ('101111101100101001', 13), ('110101011010101010', 9),
+                ('1111101010000111001', 14),
+                ('0111000101001000111', 11),
+                ('10111110100001010010', 12),
+                ('10110011010010001110', 11)]
     # chaque couple de cette liste est formee d'une sequence et de son meilleur score
 
     TIMEOUT = 10
@@ -353,16 +434,15 @@ def test_code():
     timeouts_maxscores = 0
     exceptions_maxscores = 0
 
-
-    
     # sur cet ensemble de tests, votre methode devrait toujours retourner qu'il existe une solution
     print("\n****** Test de satisfiabilite ******\n")
-    for (seq,maxbound) in examples:
+    for (seq, maxbound) in examples:
         total_sat_tests += 1
         bound = int(maxbound / 2)
         print("sequence: " + seq + " borne: " + str(bound), end='')
         try:
-            if func_timeout.func_timeout(TIMEOUT, exist_sol, [seq,bound]):
+            if func_timeout.func_timeout(TIMEOUT, exist_sol,
+                                         [seq, bound]):
                 sat_tests_success += 1
                 print(" ---> succes")
             else:
@@ -376,12 +456,13 @@ def test_code():
 
     # sur cet ensemble de tests, votre methode devrait toujours retourner qu'il n'existe pas de solution
     print("\n****** Test de d'insatisfiabilite ******\n")
-    for (seq,maxbound) in examples:
+    for (seq, maxbound) in examples:
         total_unsat_tests += 1
-        bound = maxbound+1
+        bound = maxbound + 1
         print("sequence: " + seq + " borne: " + str(bound), end='')
         try:
-            if not func_timeout.func_timeout(TIMEOUT, exist_sol, [seq,bound]):
+            if not func_timeout.func_timeout(TIMEOUT, exist_sol,
+                                             [seq, bound]):
                 unsat_tests_success += 1
                 print(" ---> succes")
             else:
@@ -393,15 +474,17 @@ def test_code():
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
 
-            
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
     print("\n****** Test de calcul du meilleur score ******\n")
-    for (seq,maxbound) in examples:
+    for (seq, maxbound) in examples:
         total_maxscores += 1
-        print("sequence: " + seq + " borne attendue: " + str(maxbound), end='')
+        print("sequence: " + seq + " borne attendue: " + str(maxbound),
+              end='')
         try:
-            found_max_score = func_timeout.func_timeout(TIMEOUT, compute_max_score, [seq])
+            found_max_score = func_timeout.func_timeout(TIMEOUT,
+                                                        compute_max_score,
+                                                        [seq])
             print(" borne retournee: " + str(found_max_score), end='')
             if maxbound == found_max_score:
                 correct_maxscores += 1
@@ -417,15 +500,21 @@ def test_code():
 
     print("\nRESULTATS TESTS\n")
 
-    print("Instances avec solutions correctement repondues: " + str(sat_tests_success) + " sur " + str(total_sat_tests) + " tests realises")
+    print("Instances avec solutions correctement repondues: " + str(
+        sat_tests_success) + " sur " + str(
+        total_sat_tests) + " tests realises")
     print("Nombre de timeouts: " + str(timeouts_sat_tests))
     print("Nombre d'exceptions: " + str(exceptions_sat_tests) + "\n")
 
-    print("Instances sans solution correctement repondues: " + str(unsat_tests_success) + " sur " + str(total_unsat_tests) + " tests realises")
+    print("Instances sans solution correctement repondues: " + str(
+        unsat_tests_success) + " sur " + str(
+        total_unsat_tests) + " tests realises")
     print("Nombre de timeouts: " + str(timeouts_unsat_tests))
     print("Nombre d'exceptions: " + str(exceptions_unsat_tests) + "\n")
-    
-    print("Meilleurs scores correctement calcules: " + str(correct_maxscores) + " sur " + str(total_maxscores) + " tests realises")
+
+    print("Meilleurs scores correctement calcules: " + str(
+        correct_maxscores) + " sur " + str(
+        total_maxscores) + " tests realises")
     print("Nombre de timeouts: " + str(timeouts_maxscores))
     print("Nombre d'exceptions: " + str(exceptions_maxscores) + "\n")
 
@@ -437,33 +526,46 @@ def test_code():
 ##################################################################################################################################################
 
 
-if test:
-    print("Let's test your code")
-    test_code()
-elif options.bound!=None:
-    # cas ou la borne est fournie en entree:
-    # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
-    # si oui, on affiche "SAT".
-    # Si l'option d'affichage est active,
-    #   alors il faut egalement afficher une solution
-    print("DEBUT DU TEST DE SATISFIABILITE")
-    # A COMPLETER
-    print("FIN DU TEST DE SATISFIABILITE")
+# if test:
+#     print("Let's test your code")
+#     test_code()
+# elif options.bound != None:
+#     # cas ou la borne est fournie en entree:
+#     # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
+#     # si oui, on affiche "SAT".
+#     # Si l'option d'affichage est active,
+#     #   alors il faut egalement afficher une solution
+#     print("DEBUT DU TEST DE SATISFIABILITE")
+#     # A COMPLETER
+#
+#     if exist_sol(options.sequence, options.bound):
+#         print("SAT")
+#         if options.display:
+#             print_solution()
+#
+#     print("FIN DU TEST DE SATISFIABILITE")
+#
+# elif not (incremental):
+#     # on affiche le score maximal qu'on calcule par dichotomie
+#     # si l'option d'affichage est active
+#     #   on affiche egalement un plongement de score maximal
+#     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
+#
+#     test_code()
+#
+#     if len(sys.argv) > 1:
+#         print("Calcul du meilleur score pour la sequence " + options.sequence)
+#         compute_max_score(options.sequence
+#                           , method="dichotomy"
+#                           )
+#     print("FIN DU CALCUL DU MEILLEUR SCORE")
+#
+# elif not test:
+#     # Pareil que dans le cas precedent mais avec la methode incrementale
+#     # A COMPLETER
+#     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
+#     # A COMPLETER
+#     print("FIN DU CALCUL DU MEILLEUR SCORE")
 
-elif not (incremental):
-    # on affiche le score maximal qu'on calcule par dichotomie
-    # si l'option d'affichage est active
-    #   on affiche egalement un plongement de score maximal
-    print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
 
-    test_code()
-
-    # compute_max_score(options.sequence)
-    print("FIN DU CALCUL DU MEILLEUR SCORE")
-    
-elif not test:
-    # Pareil que dans le cas precedent mais avec la methode incrementale
-    # A COMPLETER
-    print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
-    # A COMPLETER
-    print("FIN DU CALCUL DU MEILLEUR SCORE")
+exist_sol("01", 0)
