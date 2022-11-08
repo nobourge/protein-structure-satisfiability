@@ -1,7 +1,9 @@
 # cours informatique fondamentale 2021-2022
 # PROJET: repliage de proteines
 
-# necessite l'installation de la librairie PySAT et de la librairie func_timeout
+# necessite l'installation de
+# la librairie PySAT et de
+# la librairie func_timeout
 import sys
 
 from pysat.solvers import Minisat22
@@ -133,10 +135,10 @@ def max1value_per_location(seq,
     for i in range(n):
         for j in range(n):
             for index1 in range(n):
-                for index2 in range(index1 + 1, n):
-                    cnf.append([-vpool.id((i, j, index1 + 1))
-                                   , -vpool.id((i, j, index2 + 1))])
-
+                for index2 in range(n):
+                    if index1 != index2:
+                        cnf.append([-vpool.id((i, j, index1)),
+                                    -vpool.id((i, j, index2))])
 
 #  fonction card
 #  qui prend en entr´ee un
