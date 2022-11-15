@@ -73,6 +73,7 @@ verb = options.verbose
 incremental = options.incremental
 test = options.test
 
+
 ###############################################################################################
 
 # clauses = contraintes
@@ -82,10 +83,31 @@ def sequence_neighboring_maintain(n, cnf, vpool):
     print()
     print("Les elements de la sequence sont voisins")
     for i in range(n - 1):
-        set_neighbors(n, cnf, vpool, i, i + 1, )
+        cnf_set_neighbors(n,
+                          cnf,
+                          vpool,
+                          i,
+                          i + 1,
+                          )
 
-def set_neighbors(n, cnf, vpool, a, b):
-    print("set_neighbors", a, b)
+
+def are_neighbors(i, j, k, l):
+    # retourne True si et seulement si
+    # (i, j) et (k, l) sont voisins
+    # A COMPLETER
+    if (abs(i - k) == 0 and
+        abs(j - l) == 1) or \
+            (abs(i - k) == 1 and
+             abs(j - l) == 0):
+        return True
+    return False
+
+
+def potential_neighbors_pairs_disjunction(n
+                                          , vpool
+                                          , a
+                                          , b):
+    potential_neighbors_disjunction = []
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
     for i in range(n):
@@ -93,32 +115,114 @@ def set_neighbors(n, cnf, vpool, a, b):
             d = [-vpool.id((i, j, a))]
             for k in range(n):
                 for l in range(n):
-                    print("i = ", i, "\nj = ", j, "\nk = ", k, "\nl = ", l)
-                    if (abs(i - k) == 0 and abs(j - l) == 1) or (abs(i - k) == 1 and abs(j - l) == 0):
-                        print("              i, j, k, l", i, j, k, l)
+                    # print("i = ", i
+                    #       , "\nj = ", j
+                    #       , "\nk = ", k
+                    #       , "\nl = ", l)
+                    if are_neighbors(i, j, k, l):
+                        # print("              i, j, k, l", i, j, k, l)
                         d.append(vpool.id((k, l, b)))
-            print("d = ", d)
+            # print("d = ", d)
+            potential_neighbors_disjunction.append(d)
+
+
+def cnf_set_neighbors(n,
+                      cnf,
+                      vpool,
+                      a,
+                      b):
+    # print("cnf_set_neighbors", a, b)
+    # deux points (i, j), (k, l) ∈ N² sont voisins si
+    # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
+    for i in range(n):
+        for j in range(n):
+            d = [-vpool.id((i, j, a))]
+            for k in range(n):
+                for l in range(n):
+                    # print("i = ", i
+                    #       , "\nj = ", j
+                    #       , "\nk = ", k
+                    #       , "\nl = ", l)
+                    if are_neighbors(i, j, k, l):
+                        # print("              i, j, k, l", i, j, k, l)
+                        d.append(vpool.id((k, l, b)))
+            # print("d = ", d)
             cnf.append(d)
 
+
+def get_potential_neighbors_pairs_disjunctions(seq
+                                               , n
+                                               , vpool
+                                               , value):
+    # retourne la liste des voisins potentiels
+    # de la sequence seq
+    # A COMPLETER
+
+    potential_neighbors = []
+    for i in range(n):
+        if seq[i] == value:
+            potential_neighbors.append(i)
+    potential_neighbors_pairs_disjunctions = []
+    for i in potential_neighbors:
+        for j in potential_neighbors:
+            if i != j:
+                potential_neighbors_pairs_disjunctions \
+                    .append(potential_neighbors_pairs_disjunction(n
+                                                                  ,
+                                                                  vpool
+                                                                  , i
+                                                                  , j))
+    return potential_neighbors_pairs_disjunctions
+
+
+# fonction card
+# qui prend en entree un
+# ensemble fini de variables X et un entier k,
+# et qui retourne un
+# ensemble de clauses card(X, k),
+# qui est satisfaisable si et seulement si
+# il existe au moins k variables de X qui sont vraies
+def card(X,
+         k,
+         cnf):
+    cnf.append(CardEnc.atleast(lits=X
+                               , bound=k
+                               # , encoding=EncType.pairwise
+                               ))
+    # return AtLeast(X, k)
+
 # si X-x,y,i alors pas X-x,y,i'
-def max1value_per_location(n, cnf, vpool):
+
+def max1value_per_location(n,
+                           cnf,
+                           vpool
+                           ):
     print()
     print("Au plus une valeur par case")
     for i in range(n):
-        for j in range(n):                  # parcours tableau
+        for j in range(n):  # parcours tableau
             for index1 in range(n):
-                for index2 in range(n):     # prend 2 index de seq
-                    if index1 != index2:    # index 1 != index 2
-                        cnf.append([-vpool.id((i, j, index1)), -vpool.id((i, j, index2))])
+                for index2 in range(n):
+                    if index1 != index2:
+                        cnf.append([-vpool.id((i, j, index1)),
+                                    -vpool.id((i, j, index2))])
+
 
 # pas sur de celle là
 def all_values_used(n, cnf, vpool):
     print()
     print("All values in sequence must be in the answer")
     for index in range(n):
+        index_at_positions_disjunction = []
         for i in range(n):
             for j in range(n):
-                cnf.append([vpool.id((i, j, index))])
+                index_at_positions_disjunction.append(vpool.id((i
+                                                                , j
+                                                                ,
+                                                                index)))
+        cnf.append(index_at_positions_disjunction)
+
+
 """
 d'après pavage.py
 # tout tile doit apparaitre au moins une fois
@@ -130,88 +234,154 @@ d'après pavage.py
     # cnf.append(d)
 """
 
+
 # si X-x,y,i alors pas X-x',y',i
 def max1location_per_value(n, cnf, vpool):
     print()
     print("Au plus une case par valeur")
-    for index in range(n):                          # take 1 index
+    for index in range(n):  # take 1 index
         for x in range(n):
-            for y in range(n):                      # take 1 cell
+            for y in range(n):  # take 1 cell
                 for x2 in range(n):
-                    for y2 in range(n):             # take 2nd cell
-                        if x != x2 and y != y2:     # cell 1 and 2 can't have same index
-                            cnf.append([-vpool.id((x, y, index)), -vpool.id((x2, y2, index))])
-
-def min1value_per_line(n, cnf, vpool):
-    pass
-
-def min1value_per_column(n, cnf, vpool):
-    pass
+                    for y2 in range(n):  # take 2nd cell
+                        if x != x2 and y != y2:  # cell 1 and 2 can't have same index
+                            cnf.append([-vpool.id((x, y, index)),
+                                        -vpool.id((x2, y2, index))])
 
 
 
 
-# fonction card
-# qui prend en entree un
-# ensemble fini de variables X et un entier k,
-# et qui retourne un
-# ensemble de clauses card(X, k),
-# qui est satisfaisable si et seulement si
-# il existe au moins k variables de X qui sont vraies
-def card(X, k, cnf):
-    cnf.append(CardEnc.atleast(lits=X, bound=k)) # , encoding=EncType.pairwise
-    # return AtLeast(X, k)
-
-def set_clauses(seq, n, cnf, vpool):
-    # sequence elements 2 by 2 are neighbors
-    sequence_neighboring_maintain(n, cnf, vpool)
-    size = len(seq)
+def set_clauses(seq,
+                n,
+                cnf,
+                vpool
+                , bound
+                ):  # sequence elements 2 by 2 are neighbors
+    sequence_neighboring_maintain(n,
+                                  cnf,
+                                  vpool
+                                  )
     # au plus une valeur par case
-    max1value_per_location(size, cnf, vpool)
+    max1value_per_location(n, cnf, vpool)
+    max1location_per_value(n, cnf, vpool)
+    all_values_used(n, cnf, vpool)
+    potent = get_potential_neighbors_pairs_disjunctions(seq
+                                                        , n
+                                                        , vpool
+                                                        , 1)
+    card(potent
+         , bound
+         , cnf
+         )
     # # au moins une valeur par ligne
     # min1value_per_line(size, cnf, vpool)
     # # au moins une valeur par colonne
     # min1value_per_column(size, cnf, vpool)
     return cnf
 
+
 # print the variables of the solution
-def print_solution_variables(seq, n, vpool, sol):
+def print_solution_variables(seq,
+                             n,
+                             vpool,
+                             sol):
     print("Solution variables:")
     for i in range(n):
         for j in range(n):
             for v in range(n):
-                print("value : ", v)
+                # print("value : ", v)
                 # print("value", vpool.id((i, j, v + 1)), "=",
                 # sol[vpool.id((i, j, v + 1))])
                 if vpool.id((i, j, v)) in sol:
                     print(i, j, seq[v])
 
-def print_solution(seq, n, vpool, sol):  # affiche la solution
-    print_solution_variables(seq, n, vpool, sol)
+
+def get_matrix(n, vpool, sol):
+    matrix = []
+    for i in range(n):
+        matrix.append([])
+        for j in range(n):
+            for v in range(n):
+                if vpool.id((i, j, v)) in sol:
+                    matrix[i].append(v)
+                else:
+                    matrix[i].append(-1)
+    return matrix
+
+
+def get_score(matrix):
+    # score = lambda matrix, n: sum([matrix[i][j] == i + 1 for i in range(n) for j in range(n)])
+    score = 0
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            if matrix[i][j] == matrix[i + 1][j] and i + 1 < len(matrix):
+                score += 1
+            if matrix[i][j] == matrix[i][j + 1] and j + 1 < len(matrix):
+                score += 1
+    return score
+
+
+def print_solution_matrix(matrix
+                          , seq):
+    print("Solution matrix:")
+    for mode in ("index", "value"):
+        for i in range(len(matrix)):
+            # print(matrix[i])
+            print("\n")
+            for j in range(len(matrix)):
+                if 0 <= matrix[i][j]:
+                    if mode == "index":
+                        print(matrix[i][j], end=" ")
+                    else:
+                        print(seq[matrix[i][j]], end=" ")
+                else:
+                    print("*", end=" ")
+
+
+def print_solution(seq,
+                   n,
+                   vpool,
+                   sol
+                   , scoring=True):  # affiche la solution
+    if scoring:
+        score = 0
+
+    # print_solution_variables(seq,
+    #                          n,
+    #                          vpool,
+    #                          sol)
     print("matrix representation:")
     for i in range(n):
         for j in range(n):
             location_valued = False
             for v in range(n):
                 if vpool.id((i, j, v)) in sol:
-                    # if vpool.id((i,j,v)) in sol.get_model():
                     print(seq[v], end=" ")
                     location_valued = True
+
             if not location_valued: print("* ", end='')
         print()
 
-def solve(seq, bound):
+
+def solve(seq,
+          bound
+          ):
     # retourne un plongement de score au moins 'bound'
     # si aucune solution n'existe, retourne None
 
     # variables ##########################
-    vpool = IDPool(start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
+    vpool = IDPool(
+        start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
     cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
 
     n = len(seq)
 
     # contraintes ##########################
-    cnf = set_clauses(seq, n, cnf, vpool)
+    cnf = set_clauses(seq,
+                      n,
+                      cnf,
+                      vpool
+                      , bound)
     solver = Glucose4(use_timer=True)  # MiniSAT
     # solver = Glucose4(use_timer=True)
     solver.append_formula(cnf.clauses, no_return=False)
@@ -221,43 +391,65 @@ def solve(seq, bound):
     print("Satisfaisable : " + str(resultat))
     print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
     if resultat:
+
+        interpretation = solver.get_model()  # extracting a
+        # satisfying assignment for CNF formula given to the solver
+        # A model is provided if a previous SAT call returned True.
+        # Otherwise, None is reported.
+        # Return type list(int) or None
+
+        if interpretation is not None:
+            print("Interpretation: ",
+                  interpretation)
+
+        # cette interpretation est longue,
+        # on va filtrer les valeurs positives
+        # (il y a en line_quantity fois moins)
+        filtered_interpretation = list(
+            filter(lambda x: x >= 0, interpretation))
+
+        matrix = get_matrix(n, vpool, filtered_interpretation)
         affichage_sol = True
         if affichage_sol:
             print("\nVoici une solution: \n")
-            interpretation = solver.get_model()  # extracting a
-            # satisfying assignment for CNF formula given to the solver
-            # A model is provided if a previous SAT call returned True.
-            # Otherwise, None is reported.
-            # Return type list(int) or None
 
-            if interpretation is not None: print("Interpretation: ", interpretation)
-
-            # cette interpretation est longue,
-            # on va filtrer les valeurs positives
-            # (il y a en line_quantity fois moins)
-            filtered_interpretation = list(filter(lambda x: x >= 0, interpretation))
-            print_solution(seq, n, vpool, filtered_interpretation)
-        return resultat
+            print_solution_matrix(matrix
+                                  , seq)
+            # print_solution(seq,
+            #                n,
+            #                vpool,
+            #                filtered_interpretation
+            #                # resultat
+            #                )
+        score = get_score(matrix)
+        if score >= bound:
+            return resultat
     return None
+
 
 def exist_sol(seq, bound):
     # retourne True si et seulement si il
     # existe un plongement de score au moins 'bound'
     # A COMPLETER
     # clauses = card(X, k)
-    if solve(seq, bound,):
+    if solve(seq,
+             bound
+             ):
         print("Il existe une solution")
         return True
     return False
 
-# vous pouvez utiliser les methodes de la classe pysat.card pour creer des contraintes de cardinalites (au moins k, au plus k,...)
+
+# vous pouvez utiliser les methodes de la classe pysat.card pour
+# creer des contraintes de cardinalites (au moins k, au plus k,...)
 
 def dichotomy(seq):
-    # retourne un plongement de score au moins 'lower_bound'
-    # si aucune solution n'existe, retourne None
-    # cette fonction utilise la methode de dichotomie pour trouver un plongement de score au moins 'lower_bound'
-    # A COMPLETER
+    # retourne un plongement de score au moins 'lower_bound' si
+    # aucune solution n'existe, retourne None cette fonction utilise
+    # la methode de dichotomie pour trouver un plongement de score au
+    # moins 'lower_bound' A COMPLETER
     return None
+
 
 def incremental_search(seq, lower_bound):
     # retourne un plongement de score au moins 'lower_bound'
@@ -278,6 +470,7 @@ def incremental_search(seq, lower_bound):
     else:
         print("Pas de solution")
         return None
+
 
 def score(seq, sol):
     # retourne le score d'un plongement
@@ -301,6 +494,7 @@ def score(seq, sol):
                 score += 1
     return score
 
+
 def compute_max_score(seq, method):
     # calcul le meilleur score pour la sequence seq,
     # il doit donc retourne un entier,
@@ -308,8 +502,10 @@ def compute_max_score(seq, method):
     #                   incrementale si l'option -i est active
     score_best = 0
     # si l'option -i est active, on utilise la recherche incrémentale
-    if method == "incremental": score_best = incremental_search(seq,0)
-    else: score_best = dichotomy(seq)
+    if method == "incremental":
+        score_best = incremental_search(seq, 0)
+    else:
+        score_best = dichotomy(seq)
     return (score_best)
 
 
@@ -389,7 +585,8 @@ def test_code():
             exceptions_sat_tests += 1
             print(" ---> exception levee")
 
-    # sur cet ensemble de tests, votre methode devrait toujours retourner qu'il n'existe pas de solution
+    # sur cet ensemble de tests, votre methode devrait toujours
+    # retourner qu'il n'existe pas de solution
     print("\n****** Test de d'insatisfiabilite ******\n")
     for (seq, maxbound) in examples:
         total_unsat_tests += 1
@@ -461,46 +658,46 @@ def test_code():
 ##################################################################################################################################################
 
 
-# if test:
-#     print("Let's test your code")
-#     test_code()
-# elif options.bound != None:
-#     # cas ou la borne est fournie en entree:
-#     # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
-#     # si oui, on affiche "SAT".
-#     # Si l'option d'affichage est active,
-#     #   alors il faut egalement afficher une solution
-#     print("DEBUT DU TEST DE SATISFIABILITE")
-#     # A COMPLETER
-#
-#     if exist_sol(options.sequence, options.bound):
-#         print("SAT")
-#         if options.display:
-#             print_solution()
-#
-#     print("FIN DU TEST DE SATISFIABILITE")
-#
-# elif not (incremental):
-#     # on affiche le score maximal qu'on calcule par dichotomie
-#     # si l'option d'affichage est active
-#     #   on affiche egalement un plongement de score maximal
-#     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
-#
-#     test_code()
-#
-#     if len(sys.argv) > 1:
-#         print("Calcul du meilleur score pour la sequence " + options.sequence)
-#         compute_max_score(options.sequence
-#                           , method="dichotomy"
-#                           )
-#     print("FIN DU CALCUL DU MEILLEUR SCORE")
-#
-# elif not test:
-#     # Pareil que dans le cas precedent mais avec la methode incrementale
-#     # A COMPLETER
-#     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
-#     # A COMPLETER
-#     print("FIN DU CALCUL DU MEILLEUR SCORE")
+if test:
+    print("Let's test your code")
+    test_code()
+elif options.bound != None:
+    # cas ou la borne est fournie en entree:
+    # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
+    # si oui, on affiche "SAT".
+    # Si l'option d'affichage est active,
+    #   alors il faut egalement afficher une solution
+    print("DEBUT DU TEST DE SATISFIABILITE")
+    # A COMPLETER
 
+    if exist_sol(options.sequence, options.bound):
+        print("SAT")
+        if options.display:
+            print_solution()
+
+    print("FIN DU TEST DE SATISFIABILITE")
+
+elif not (incremental):
+    # on affiche le score maximal qu'on calcule par dichotomie
+    # si l'option d'affichage est active
+    #   on affiche egalement un plongement de score maximal
+    print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
+
+    test_code()
+
+    if len(sys.argv) > 1:
+        print(
+            "Calcul du meilleur score pour la sequence " + options.sequence)
+        compute_max_score(options.sequence
+                          , method="dichotomy"
+                          )
+    print("FIN DU CALCUL DU MEILLEUR SCORE")
+
+elif not test:
+    # Pareil que dans le cas precedent mais avec la methode incrementale
+    # A COMPLETER
+    print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
+    # A COMPLETER
+    print("FIN DU CALCUL DU MEILLEUR SCORE")
 
 exist_sol("01", 0)
