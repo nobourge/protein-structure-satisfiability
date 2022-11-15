@@ -73,121 +73,109 @@ verb = options.verbose
 incremental = options.incremental
 test = options.test
 
-
 ###############################################################################################
-
 
 # clauses = contraintes
 
-
 # sequence elements 2 by 2 are neighbors
-def sequence_neighboring_maintain(n
-                                  , cnf,
-                                  vpool):
+def sequence_neighboring_maintain(n, cnf, vpool):
     print()
     print("Les elements de la sequence sont voisins")
-
     for i in range(n - 1):
-        set_neighbors(n,
-                      cnf,
-                      vpool,
-                      i,
-                      i + 1,
-                      )
+        set_neighbors(n, cnf, vpool, i, i + 1, )
 
-
-def set_neighbors(n,
-                  cnf,
-                  vpool,
-                  a,
-                  b):
+def set_neighbors(n, cnf, vpool, a, b):
     print("set_neighbors", a, b)
     # deux points (i, j), (k, l) ∈ N² sont voisins si
-    # (|i − k|,
-    # |j − l|) ∈ {(0, 1), (1, 0)}.
+    # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
     for i in range(n):
         for j in range(n):
             d = [-vpool.id((i, j, a))]
             for k in range(n):
                 for l in range(n):
-                    print("i = ", i
-                          , "\nj = ", j
-                          , "\nk = ", k
-                          , "\nl = ", l)
-                    if (abs(i - k) == 0 and
-                        abs(j - l) == 1) or \
-                            (abs(i - k) == 1 and
-                             abs(j - l) == 0):
+                    print("i = ", i, "\nj = ", j, "\nk = ", k, "\nl = ", l)
+                    if (abs(i - k) == 0 and abs(j - l) == 1) or (abs(i - k) == 1 and abs(j - l) == 0):
                         print("              i, j, k, l", i, j, k, l)
                         d.append(vpool.id((k, l, b)))
             print("d = ", d)
             cnf.append(d)
 
-
-def max1value_per_location(seq,
-                           cnf,
-                           vpool
-                           ):
+# si X-x,y,i alors pas X-x,y,i'
+def max1value_per_location(n, cnf, vpool):
     print()
     print("Au plus une valeur par case")
-
-    n = len(seq)
     for i in range(n):
-        for j in range(n):
+        for j in range(n):                  # parcours tableau
             for index1 in range(n):
-                for index2 in range(n):
-                    if index1 != index2:
-                        cnf.append([-vpool.id((i, j, index1)),
-                                    -vpool.id((i, j, index2))])
+                for index2 in range(n):     # prend 2 index de seq
+                    if index1 != index2:    # index 1 != index 2
+                        cnf.append([-vpool.id((i, j, index1)), -vpool.id((i, j, index2))])
 
-#  fonction card
-#  qui prend en entr´ee un
+# pas sur de celle là
+def all_values_used(n, cnf, vpool):
+    print()
+    print("All values in sequence must be in the answer")
+    for index in range(n):
+        for i in range(n):
+            for j in range(n):
+                cnf.append([vpool.id((i, j, index))])
+"""
+d'après pavage.py
+# tout tile doit apparaitre au moins une fois
+# for t in tile_list:         
+    # d = []
+    # for i in range(dim):
+        # for j in range(dim):
+            # d.append(vpool.id((i,j,t)))
+    # cnf.append(d)
+"""
+
+# si X-x,y,i alors pas X-x',y',i
+def max1location_per_value(n, cnf, vpool):
+    print()
+    print("Au plus une case par valeur")
+    for index in range(n):                          # take 1 index
+        for x in range(n):
+            for y in range(n):                      # take 1 cell
+                for x2 in range(n):
+                    for y2 in range(n):             # take 2nd cell
+                        if x != x2 and y != y2:     # cell 1 and 2 can't have same index
+                            cnf.append([-vpool.id((x, y, index)), -vpool.id((x2, y2, index))])
+
+def min1value_per_line(n, cnf, vpool):
+    pass
+
+def min1value_per_column(n, cnf, vpool):
+    pass
+
+
+
+
+# fonction card
+# qui prend en entree un
 # ensemble fini de variables X et un entier k,
 # et qui retourne un
 # ensemble de clauses card(X, k),
 # qui est satisfaisable si et seulement si
 # il existe au moins k variables de X qui sont vraies
-def card(X,
-         k,
-         cnf):
-    cnf.append(CardEnc.atleast(lits=X
-                               , bound=k
-                               # , encoding=EncType.pairwise
-                               ))
+def card(X, k, cnf):
+    cnf.append(CardEnc.atleast(lits=X, bound=k)) # , encoding=EncType.pairwise
     # return AtLeast(X, k)
 
-
-def set_clauses(seq,
-                n,
-                cnf,
-                vpool
-                ):
+def set_clauses(seq, n, cnf, vpool):
     # sequence elements 2 by 2 are neighbors
-    sequence_neighboring_maintain(n,
-                                  cnf,
-                                  vpool
-                                  )
+    sequence_neighboring_maintain(n, cnf, vpool)
+    size = len(seq)
     # au plus une valeur par case
-    max1value_per_location(seq,
-                           cnf,
-                           vpool
-                           )
+    max1value_per_location(size, cnf, vpool)
     # # au moins une valeur par ligne
-    # min1value_per_line(seq,
-    #                    cnf,
-    #                    vpool)
+    # min1value_per_line(size, cnf, vpool)
     # # au moins une valeur par colonne
-    # min1value_per_column(seq,
-    #                      cnf,
-    #                      vpool)
+    # min1value_per_column(size, cnf, vpool)
     return cnf
 
-
 # print the variables of the solution
-def print_solution_variables(seq,
-                             n,
-                             vpool,
-                             sol):
+def print_solution_variables(seq, n, vpool, sol):
     print("Solution variables:")
     for i in range(n):
         for j in range(n):
@@ -198,16 +186,8 @@ def print_solution_variables(seq,
                 if vpool.id((i, j, v)) in sol:
                     print(i, j, seq[v])
 
-
-def print_solution(seq,
-                   n,
-                   vpool,
-                   sol):  # affiche la solution
-
-    print_solution_variables(seq,
-                             n,
-                             vpool,
-                             sol)
+def print_solution(seq, n, vpool, sol):  # affiche la solution
+    print_solution_variables(seq, n, vpool, sol)
     print("matrix representation:")
     for i in range(n):
         for j in range(n):
@@ -217,32 +197,22 @@ def print_solution(seq,
                     # if vpool.id((i,j,v)) in sol.get_model():
                     print(seq[v], end=" ")
                     location_valued = True
-            if not location_valued:
-                print("* ", end='')
+            if not location_valued: print("* ", end='')
         print()
 
-
-def solve(seq,
-          bound
-          ):
+def solve(seq, bound):
     # retourne un plongement de score au moins 'bound'
     # si aucune solution n'existe, retourne None
 
     # variables ##########################
-    vpool = IDPool(
-        start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
+    vpool = IDPool(start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
     cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
 
     n = len(seq)
 
     # contraintes ##########################
-    cnf = set_clauses(seq,
-                      n,
-                      cnf,
-                      vpool)
-
-    solver = Glucose4(
-        use_timer=True)  # MiniSAT
+    cnf = set_clauses(seq, n, cnf, vpool)
+    solver = Glucose4(use_timer=True)  # MiniSAT
     # solver = Glucose4(use_timer=True)
     solver.append_formula(cnf.clauses, no_return=False)
 
@@ -260,84 +230,57 @@ def solve(seq,
             # Otherwise, None is reported.
             # Return type list(int) or None
 
-            if interpretation is not None:
-                print("Interpretation: ", interpretation)
+            if interpretation is not None: print("Interpretation: ", interpretation)
 
             # cette interpretation est longue,
             # on va filtrer les valeurs positives
             # (il y a en line_quantity fois moins)
-            filtered_interpretation = list(
-                filter(lambda x: x >= 0, interpretation))
-            print_solution(seq,
-                           n,
-                           vpool,
-                           filtered_interpretation
-                           # resultat
-                           )
+            filtered_interpretation = list(filter(lambda x: x >= 0, interpretation))
+            print_solution(seq, n, vpool, filtered_interpretation)
         return resultat
     return None
 
-
-def exist_sol(seq,
-              bound):
+def exist_sol(seq, bound):
     # retourne True si et seulement si il
     # existe un plongement de score au moins 'bound'
     # A COMPLETER
-
     # clauses = card(X, k)
-
-    if solve(seq,
-             bound,
-             ):
+    if solve(seq, bound,):
         print("Il existe une solution")
         return True
     return False
 
-
 # vous pouvez utiliser les methodes de la classe pysat.card pour creer des contraintes de cardinalites (au moins k, au plus k,...)
-
 
 def dichotomy(seq):
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution n'existe, retourne None
     # cette fonction utilise la methode de dichotomie pour trouver un plongement de score au moins 'lower_bound'
     # A COMPLETER
-
     return None
 
-
-def incremental_search(seq
-                       , lower_bound
-                       ):
+def incremental_search(seq, lower_bound):
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution n'existe, retourne None
     # cette fonction utilise une recherche incrémentale
     # pour trouver un plongement de score au moins 'lower_bound'
 
     bound = lower_bound
-    sol = exist_sol(seq
-                    , bound)
+    sol = exist_sol(seq, bound)
     while sol:
-        sol = exist_sol(seq
-                        , bound)
+        sol = exist_sol(seq, bound)
         # tant qu'il existe un plongement de score au moins 'bound'
         bound += 1
 
     if bound > lower_bound:
-        sol = solve(seq
-                    , bound - 1
-                    )
+        sol = solve(seq, bound - 1)
         return sol
-
     else:
         print("Pas de solution")
         return None
 
-
-def score(seq,
-          sol):
+def score(seq, sol):
     # retourne le score d'un plongement
-
     # Le score d’un plongement P de p, noté score(p, P) est défini par
     # score(p, P) =
     # |{{i, j} | i, j ∈ Pos(p),
@@ -348,7 +291,6 @@ def score(seq,
     # paires de positions différentes i, j de p,
     # étiquetées par 1 dans p,
     # et qui se plongent vers des points voisins dans N²
-
     score = 0
     for aa1_index in range(len(seq)):
         for aa2_index in range(len(seq)):
@@ -359,24 +301,15 @@ def score(seq,
                 score += 1
     return score
 
-
-def compute_max_score(seq
-                      , method
-                      ):
+def compute_max_score(seq, method):
     # calcul le meilleur score pour la sequence seq,
     # il doit donc retourne un entier,
     # methode utilisee: dichotomie par defaut,
     #                   incrementale si l'option -i est active
     score_best = 0
-
     # si l'option -i est active, on utilise la recherche incrémentale
-    if method == "incremental":
-        score_best = incremental_search(seq,
-                                        0
-                                        )
-    else:
-        score_best = dichotomy(seq)
-
+    if method == "incremental": score_best = incremental_search(seq,0)
+    else: score_best = dichotomy(seq)
     return (score_best)
 
 
