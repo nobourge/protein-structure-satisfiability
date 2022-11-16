@@ -107,6 +107,7 @@ def potential_neighbors_pairs_disjunction(n
                                           , vpool
                                           , a
                                           , b):
+    print("potential_neighbors_pairs_disjunction", a, b)
     potential_neighbors_disjunction = []
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
@@ -158,21 +159,27 @@ def get_potential_neighbors_pairs_disjunctions(seq
     # de la sequence seq
     # A COMPLETER
 
+    print("get_potential_neighbors_pairs_disjunctions")
     potential_neighbors = []
     for i in range(n):
         if seq[i] == value:
             potential_neighbors.append(i)
-    potential_neighbors_pairs_disjunctions = []
-    for i in potential_neighbors:
-        for j in potential_neighbors:
-            if i != j:
-                potential_neighbors_pairs_disjunctions \
-                    .append(potential_neighbors_pairs_disjunction(n
-                                                                  ,
-                                                                  vpool
-                                                                  , i
-                                                                  , j))
-    return potential_neighbors_pairs_disjunctions
+    if 0 < len(potential_neighbors):
+        print("potential_neighbors", potential_neighbors)
+        potential_neighbors_pairs_disjunctions = []
+        for i in potential_neighbors:
+            for j in potential_neighbors:
+                if i != j:
+                    potential_neighbors_pairs_disjunctions \
+                        .append(potential_neighbors_pairs_disjunction(n
+                                                                      ,
+                                                                      vpool
+                                                                      ,
+                                                                      i
+                                                                      ,
+                                                                      j))
+        return potential_neighbors_pairs_disjunctions
+    return None
 
 
 # fonction card
@@ -182,14 +189,23 @@ def get_potential_neighbors_pairs_disjunctions(seq
 # ensemble de clauses card(X, k),
 # qui est satisfaisable si et seulement si
 # il existe au moins k variables de X qui sont vraies
-def card(X,
-         k,
-         cnf):
+def card(X
+         , k
+         , cnf
+         , vpool):
+    print("card", X, k)
+    # cnf.extend(CardEnc.atleast(lits
+    #                            , 5
+    #                            , vpool=myvpool,
+    #                            encoding=EncType.seqcounter))
     cnf.append(CardEnc.atleast(lits=X
                                , bound=k
+                               , vpool=vpool
+                               , encoding=EncType.seqcounter
                                # , encoding=EncType.pairwise
                                ))
     # return AtLeast(X, k)
+
 
 # si X-x,y,i alors pas X-x,y,i'
 
@@ -197,7 +213,7 @@ def max1value_per_location(n,
                            cnf,
                            vpool
                            ):
-    print()
+    print("max1value_per_location")
     print("Au plus une valeur par case")
     for i in range(n):
         for j in range(n):  # parcours tableau
@@ -249,14 +265,13 @@ def max1location_per_value(n, cnf, vpool):
                                         -vpool.id((x2, y2, index))])
 
 
-
-
 def set_clauses(seq,
                 n,
                 cnf,
                 vpool
                 , bound
-                ):  # sequence elements 2 by 2 are neighbors
+                ):
+    # sequence elements 2 by 2 are neighbors
     sequence_neighboring_maintain(n,
                                   cnf,
                                   vpool
@@ -265,14 +280,17 @@ def set_clauses(seq,
     max1value_per_location(n, cnf, vpool)
     max1location_per_value(n, cnf, vpool)
     all_values_used(n, cnf, vpool)
-    potent = get_potential_neighbors_pairs_disjunctions(seq
-                                                        , n
-                                                        , vpool
-                                                        , 1)
-    card(potent
-         , bound
-         , cnf
-         )
+
+    # potent = get_potential_neighbors_pairs_disjunctions(seq
+    #                                                     , n
+    #                                                     , vpool
+    #                                                     , 1)
+    # if potent is not None:
+    #     card(potent
+    #          , bound
+    #          , cnf
+    #          )
+
     # # au moins une valeur par ligne
     # min1value_per_line(size, cnf, vpool)
     # # au moins une valeur par colonne
@@ -297,16 +315,31 @@ def print_solution_variables(seq,
 
 
 def get_matrix(n, vpool, sol):
-    matrix = []
+    matrix = [[0 for x in range(n)] for y in range(n)]
     for i in range(n):
-        matrix.append([])
         for j in range(n):
+            location_valued = False
             for v in range(n):
                 if vpool.id((i, j, v)) in sol:
-                    matrix[i].append(v)
-                else:
-                    matrix[i].append(-1)
+                    matrix[i][j] = v
+                    location_valued = True
+            if not location_valued:
+                matrix[i][j] = -1
     return matrix
+
+
+def get_value_matrix(matrix
+                     , seq):
+    value_matrix = [[0 for i in range(len(matrix))] for j in
+                    range(len(matrix))]
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            index = matrix[i][j]
+            if index != -1:
+                value_matrix[i][j] = seq[index]
+            else:
+                value_matrix[i][j] = -1
+    return value_matrix
 
 
 def get_score(matrix):
@@ -314,28 +347,52 @@ def get_score(matrix):
     score = 0
     for i in range(len(matrix)):
         for j in range(len(matrix)):
-            if matrix[i][j] == matrix[i + 1][j] and i + 1 < len(matrix):
-                score += 1
-            if matrix[i][j] == matrix[i][j + 1] and j + 1 < len(matrix):
-                score += 1
+            current = matrix[i][j]
+            if current == -1:
+                # print(i, j, " is -1")
+                pass
+            else:
+                # print(i, j, " is ", current)
+                if i + 1 < len(matrix):
+                    if current == matrix[i + 1][j]:
+                        score += 1
+                        # print(i, j, current, "="
+                        #       , i + 1, j,
+                        #       matrix[i + 1][j])
+                        # print("score", score)
+                if j + 1 < len(matrix):
+                    if current == matrix[i][j + 1]:
+                        score += 1
+                        # print(i, j, current, "="
+                        #       , i, j + 1, matrix[i][j + 1])
+                        # print("score", score)
     return score
 
 
 def print_solution_matrix(matrix
-                          , seq):
+                          , seq
+                          , mode="all"):
     print("Solution matrix:")
     for mode in ("index", "value"):
         for i in range(len(matrix)):
-            # print(matrix[i])
-            print("\n")
+            print()
             for j in range(len(matrix)):
                 if 0 <= matrix[i][j]:
-                    if mode == "index":
+                    if mode == "index"\
+                            or mode == "all":
                         print(matrix[i][j], end=" ")
-                    else:
+                    if mode == "value" or mode == "all":
                         print(seq[matrix[i][j]], end=" ")
                 else:
                     print("*", end=" ")
+
+
+def print_value_matrix(matrix):
+    print("Solution value matrix:")
+    for i in range(len(matrix)):
+        print()
+        for j in range(len(matrix)):
+            print(matrix[i][j], end=" ")
 
 
 def print_solution(seq,
@@ -350,6 +407,7 @@ def print_solution(seq,
     #                          n,
     #                          vpool,
     #                          sol)
+    print()
     print("matrix representation:")
     for i in range(n):
         for j in range(n):
@@ -382,6 +440,8 @@ def solve(seq,
                       cnf,
                       vpool
                       , bound)
+    print("clauses quantity:", cnf.nv)
+
     solver = Glucose4(use_timer=True)  # MiniSAT
     # solver = Glucose4(use_timer=True)
     solver.append_formula(cnf.clauses, no_return=False)
@@ -399,8 +459,7 @@ def solve(seq,
         # Return type list(int) or None
 
         if interpretation is not None:
-            print("Interpretation: ",
-                  interpretation)
+            print("Interpretation: ", interpretation)
 
         # cette interpretation est longue,
         # on va filtrer les valeurs positives
@@ -408,20 +467,29 @@ def solve(seq,
         filtered_interpretation = list(
             filter(lambda x: x >= 0, interpretation))
 
-        matrix = get_matrix(n, vpool, filtered_interpretation)
+        matrix = get_matrix(n
+                            , vpool
+                            , interpretation
+                            # , filtered_interpretation
+                            )
+        value_matrix = get_value_matrix(matrix
+                                        , seq)
         affichage_sol = True
         if affichage_sol:
             print("\nVoici une solution: \n")
 
+            # print_value_matrix(value_matrix)
             print_solution_matrix(matrix
-                                  , seq)
+                                  , seq
+                                  , mode="value")
             # print_solution(seq,
             #                n,
             #                vpool,
             #                filtered_interpretation
             #                # resultat
             #                )
-        score = get_score(matrix)
+        score = get_score(value_matrix)
+        print("score:", score)
         if score >= bound:
             return resultat
     return None
@@ -519,7 +587,7 @@ def test_code():
                 ('00110000', 1), ('11', 1), ('111', 2), ('1111', 4),
                 ('1111111', 8), ("111111111111111", 22),
                 ("1011011011", 7),
-                ("011010111110011", 12), ("01101011111000101", 11),
+                ("011010111110011", 13), ("01101011111000101", 11),
                 ("0110111001000101", 8),
                 ("000000000111000000110000000", 5), ('100010100', 0),
                 ('01101011111110111', 17), ('10', 0), ('10', 0),
@@ -657,6 +725,8 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
+exist_sol("01", 0)
+exist_sol("11", 0)
 
 if test:
     print("Let's test your code")
@@ -699,5 +769,3 @@ elif not test:
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
     # A COMPLETER
     print("FIN DU CALCUL DU MEILLEUR SCORE")
-
-exist_sol("01", 0)
