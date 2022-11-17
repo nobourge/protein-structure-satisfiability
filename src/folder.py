@@ -6,47 +6,43 @@
 # la librairie func_timeout
 import sys
 
-from pysat.solvers import Minisat22
+# from pysat.solvers import Minisat22
 from pysat.solvers import Glucose4
-from pysat.formula import CNF
-from pysat.formula import IDPool
+# from pysat.formula import CNF
+# from pysat.formula import IDPool
 from pysat.card import *
 from optparse import OptionParser
 import func_timeout
 
-##### OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE ###############
+# OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE
 
 # Usage: folder.py [options]
 
-# Options:
-# -h, --help            show this help message and exit
-# -s SEQ, --sequence=SEQ
-# specify the input sequence
-# -b BOUND, --bound=BOUND
-# specify a lower bound on the score
-# -p, --print           print solution
-# -i, --incremental     incremental mode: try small bounds first and increment
-# -v, --verbose         verbose mode
-# -t, --test            testing mode
+# Options: -h, --help            show this help message and exit -s
+# SEQ, --sequence=SEQ specify the input sequence -b BOUND,
+# --bound=BOUND specify a lower bound on the score -p, --print
+# print solution -i, --incremental     incremental mode: try small
+# bounds first and increment -v, --verbose         verbose mode -t,
+# --test            testing mode
 
-# on doit TOUJOURS donner une sequence
-# * lorsqu'une borne est donnee,
-#   votre programme doit tester que
-#       le meilleur score de la sequence est superieur ou egal a cette borne
+# on doit TOUJOURS donner une sequence * lorsqu'une borne est donnee,
+# votre programme doit tester que le meilleur score de la sequence
+# est superieur ou egal a cette borne
 
-# * lorsqu'aucune borne n'est donnee,
-#   alors votre programme doit calculer le meilleur score pour la sequence,
-#       par defaut en utilisant une recherche par dichotomie,
-#       et en utilisant une methode incrementale si l'option -i est active
+# * lorsqu'aucune borne n'est donnee, alors votre programme doit
+# calculer le meilleur score pour la sequence, par defaut en
+# utilisant une recherche par dichotomie, et en utilisant une methode
+# incrementale si l'option -i est active
 #
 # l'option -v vous permet de creer un mode 'verbose'
 
-# si l'option -t est active,
-#   alors le code execute uniquement la fonction test_code() implementee ci-dessous,
-#   qui vous permet de tester votre code avec des exemples deja fournis.
+# si l'option -t est active, alors le code execute uniquement la
+# fonction test_code() implementee ci-dessous, qui vous permet de
+# tester votre code avec des exemples deja fournis.
 
-# Si l'execution d'un test prend plus que TIMEOUT secondes (fixe a 10s ci-dessous),
-#   alors le test s'arrete et la fonction passe au test suivant
+# Si l'execution d'un test prend plus que TIMEOUT secondes (fixe a
+# 10s ci-dessous), alors le test s'arrete et la fonction passe au
+# test suivant
 
 parser = OptionParser()
 parser.add_option("-s", "--sequence", dest="seq", action="store",
@@ -335,94 +331,98 @@ def get_value_matrix(matrix
     for i in range(len(matrix)):
         for j in range(len(matrix)):
             index = matrix[i][j]
-            if index != -1:
-                value_matrix[i][j] = seq[index]
-            else:
+            print("index", index, "type : ", type(index))
+            print("seq index", seq[index], "type : ", type(seq[index]))
+
+            if index == -1:
                 value_matrix[i][j] = -1
+            else:
+                # print("index type : ", type(seq[index]))
+                value_matrix[i][j] = seq[index]
     return value_matrix
 
 
-def get_score(matrix):
-    # score = lambda matrix, n: sum([matrix[i][j] == i + 1 for i in range(n) for j in range(n)])
+def get_score(value_matrix):
+    # score = lambda value_matrix, n: sum([value_matrix[i][j] == i + 1 for i in range(n) for j in range(n)])
     score = 0
-    for i in range(len(matrix)):
-        for j in range(len(matrix)):
-            current = matrix[i][j]
-            if current == -1:
-                # print(i, j, " is -1")
-                pass
-            else:
+    for i in range(len(value_matrix)):
+        for j in range(len(value_matrix)):
+            current = value_matrix[i][j]
+            print(i, j, " is ", current)
+            # current type print
+            print(type(current))
+
+            if current == "1":
                 # print(i, j, " is ", current)
-                if i + 1 < len(matrix):
-                    if current == matrix[i + 1][j]:
+                if i + 1 < len(value_matrix):
+                    if current == value_matrix[i + 1][j]:
                         score += 1
                         # print(i, j, current, "="
                         #       , i + 1, j,
-                        #       matrix[i + 1][j])
+                        #       value_matrix[i + 1][j])
                         # print("score", score)
-                if j + 1 < len(matrix):
-                    if current == matrix[i][j + 1]:
+                if j + 1 < len(value_matrix):
+                    if current == value_matrix[i][j + 1]:
                         score += 1
                         # print(i, j, current, "="
-                        #       , i, j + 1, matrix[i][j + 1])
+                        #       , i, j + 1, value_matrix[i][j + 1])
                         # print("score", score)
+            else:
+                # print(i, j, " is -1")
+                pass
     return score
 
 
 def print_solution_matrix(matrix
                           , seq
                           , mode="all"):
-    print("Solution matrix:")
+    print("Solution value_matrix:")
     for mode in ("index", "value"):
+        print("mode : ", mode)
         for i in range(len(matrix)):
             print()
             for j in range(len(matrix)):
                 if 0 <= matrix[i][j]:
-                    if mode == "index"\
+                    if mode == "index" \
                             or mode == "all":
                         print(matrix[i][j], end=" ")
                     if mode == "value" or mode == "all":
                         print(seq[matrix[i][j]], end=" ")
                 else:
                     print("*", end=" ")
-
-
-def print_value_matrix(matrix):
-    print("Solution value matrix:")
-    for i in range(len(matrix)):
         print()
-        for j in range(len(matrix)):
-            print(matrix[i][j], end=" ")
 
 
-def print_solution(seq,
-                   n,
-                   vpool,
-                   sol
-                   , scoring=True):  # affiche la solution
-    if scoring:
-        score = 0
-
-    # print_solution_variables(seq,
-    #                          n,
-    #                          vpool,
-    #                          sol)
-    print()
-    print("matrix representation:")
-    for i in range(n):
-        for j in range(n):
-            location_valued = False
-            for v in range(n):
-                if vpool.id((i, j, v)) in sol:
-                    print(seq[v], end=" ")
-                    location_valued = True
-
-            if not location_valued: print("* ", end='')
-        print()
+# def print_solution(seq,
+#                    n,
+#                    vpool,
+#                    sol
+#                    , scoring=True):  # affiche la solution
+#     if scoring:
+#         score = 0
+#
+#     # print_solution_variables(seq,
+#     #                          n,
+#     #                          vpool,
+#     #                          sol)
+#     print()
+#     print("value_matrix representation:")
+#     for i in range(n):
+#         for j in range(n):
+#             location_valued = False
+#             for v in range(n):
+#                 if vpool.id((i, j, v)) in sol:
+#                     print(seq[v], end=" ")
+#                     location_valued = True
+#
+#             if not location_valued: print("* ", end='')
+#         print()
 
 
 def solve(seq,
           bound
+          , solver=Glucose4(use_timer=True)  # MiniSAT
+
           ):
     # retourne un plongement de score au moins 'bound'
     # si aucune solution n'existe, retourne None
@@ -442,35 +442,27 @@ def solve(seq,
                       , bound)
     print("clauses quantity:", cnf.nv)
 
-    solver = Glucose4(use_timer=True)  # MiniSAT
     # solver = Glucose4(use_timer=True)
     solver.append_formula(cnf.clauses, no_return=False)
 
     print("Resolution...")
     resultat = solver.solve()
+    print("seq ", seq)
+    print("bound ", bound)
     print("Satisfaisable : " + str(resultat))
+    # if not resultat:
+    #     insatisfaisable.append
     print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
     if resultat:
-
-        interpretation = solver.get_model()  # extracting a
-        # satisfying assignment for CNF formula given to the solver
-        # A model is provided if a previous SAT call returned True.
-        # Otherwise, None is reported.
-        # Return type list(int) or None
-
-        if interpretation is not None:
-            print("Interpretation: ", interpretation)
-
-        # cette interpretation est longue,
-        # on va filtrer les valeurs positives
-        # (il y a en line_quantity fois moins)
-        filtered_interpretation = list(
-            filter(lambda x: x >= 0, interpretation))
-
+        interpretation = interpret(seq
+                                    , n
+                                    , vpool
+                                    , solver
+                                    , resultat
+                                   )
         matrix = get_matrix(n
                             , vpool
                             , interpretation
-                            # , filtered_interpretation
                             )
         value_matrix = get_value_matrix(matrix
                                         , seq)
@@ -491,8 +483,24 @@ def solve(seq,
         score = get_score(value_matrix)
         print("score:", score)
         if score >= bound:
-            return resultat
+            return value_matrix
+
     return None
+
+
+def interpret(seq
+              , n
+              , vpool
+              , solver
+              , resultat
+              ):
+    interpretation = solver.get_model()  # extracting a
+    # satisfying assignment for CNF formula given to the solver
+    # A model is provided if a previous SAT call returned True.
+    # Otherwise, None is reported.
+    # Return type list(int) or None
+
+    return interpretation
 
 
 def exist_sol(seq, bound):
@@ -500,9 +508,14 @@ def exist_sol(seq, bound):
     # existe un plongement de score au moins 'bound'
     # A COMPLETER
     # clauses = card(X, k)
-    if solve(seq,
-             bound
-             ):
+    print()
+    print("exist_sol() ")
+    print("seq: ", seq)
+    for aa in seq:
+        print("aa : ", aa, "aa type : ", type(aa))
+    print("bound: ", bound)
+
+    if solve(seq, bound) is not None:
         print("Il existe une solution")
         return True
     return False
@@ -526,14 +539,16 @@ def incremental_search(seq, lower_bound):
     # pour trouver un plongement de score au moins 'lower_bound'
 
     bound = lower_bound
-    sol = exist_sol(seq, bound)
-    while sol:
-        sol = exist_sol(seq, bound)
+    sol_exists = exist_sol(seq, bound)
+    while sol_exists:
+        sol_exists = exist_sol(seq, bound)
         # tant qu'il existe un plongement de score au moins 'bound'
         bound += 1
 
     if bound > lower_bound:
-        sol = solve(seq, bound - 1)
+        sol = solve(seq
+                    , bound - 1
+                    )
         return sol
     else:
         print("Pas de solution")
@@ -581,35 +596,46 @@ def compute_max_score(seq, method):
 ########### CE CODE NE DOIT PAS ETRE MODIFIE #######################
 ####################################################################
 def test_code():
-    examples = [('00', 0),
-                ('1', 0),
-                ('01000', 0),
-                ('00110000', 1), ('11', 1), ('111', 2), ('1111', 4),
-                ('1111111', 8), ("111111111111111", 22),
-                ("1011011011", 7),
-                ("011010111110011", 13), ("01101011111000101", 11),
-                ("0110111001000101", 8),
-                ("000000000111000000110000000", 5), ('100010100', 0),
-                ('01101011111110111', 17), ('10', 0), ('10', 0),
-                ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
-                ('00111', 2), ('01001', 1),
-                ('111010', 3), ('110110', 3), ('0010110', 2),
-                ('0000001', 0), ('01101000', 2), ('10011111', 7),
-                ('011001101', 5), ('000110111', 5),
-                ('0011000010', 2), ('1000010100', 2),
-                ('11000111000', 5), ('01010101110', 4),
-                ('011001100010', 5), ('010011100010', 5),
-                ('1110000110011', 8), ('1000101110001', 4),
-                ('11010101011110', 10), ('01000101000101', 0),
-                ('111011100100000', 8),
-                ('000001100111010', 6), ('0110111110011000', 11),
-                ('0011110010110110', 11), ('01111100010010101', 11),
-                ('10011011011100101', 12),
-                ('101111101100101001', 13), ('110101011010101010', 9),
-                ('1111101010000111001', 14),
-                ('0111000101001000111', 11),
-                ('10111110100001010010', 12),
-                ('10110011010010001110', 11)]
+    satisfiability_success = []
+    satisfiability_echec = []
+    unsatisfiability_success = []
+    unsatisfiability_echec = []
+
+    examples = [
+        # ('00', 0),
+        #         ('1', 0),
+        #         ('01000', 0),
+        #         ('00110000', 1),
+
+        # ('11', 1),
+        # ('111', 2),
+        # ('1111', 4),
+        # ('1111111', 8), ("111111111111111", 22),
+        # ("1011011011", 7),
+        # ("011010111110011", 13), ("01101011111000101", 11),
+        # ("0110111001000101", 8),
+        # ("000000000111000000110000000", 5), ('100010100', 0),
+        # ('01101011111110111', 17), ('10', 0), ('10', 0),
+        # ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
+        # ('00111', 2), ('01001', 1),
+        # ('111010', 3), ('110110', 3), ('0010110', 2),
+        # ('0000001', 0), ('01101000', 2), ('10011111', 7),
+        # ('011001101', 5), ('000110111', 5),
+        # ('0011000010', 2), ('1000010100', 2),
+        # ('11000111000', 5), ('01010101110', 4),
+        # ('011001100010', 5), ('010011100010', 5),
+        # ('1110000110011', 8), ('1000101110001', 4),
+        # ('11010101011110', 10), ('01000101000101', 0),
+        # ('111011100100000', 8),
+        # ('000001100111010', 6), ('0110111110011000', 11),
+        # ('0011110010110110', 11), ('01111100010010101', 11),
+        # ('10011011011100101', 12),
+        # ('101111101100101001', 13), ('110101011010101010', 9),
+        # ('1111101010000111001', 14),
+        # ('0111000101001000111', 11),
+        # ('10111110100001010010', 12),
+        # ('10110011010010001110', 11)
+    ]
     # chaque couple de cette liste est formee d'une sequence et de son meilleur score
 
     TIMEOUT = 10
@@ -639,19 +665,36 @@ def test_code():
         total_sat_tests += 1
         bound = int(maxbound / 2)
         print("sequence: " + seq + " borne: " + str(bound), end='')
+        exist_sol(seq, bound)
         try:
             if func_timeout.func_timeout(TIMEOUT, exist_sol,
                                          [seq, bound]):
                 sat_tests_success += 1
                 print(" ---> succes")
+                satisfiability_success.append(seq)
             else:
                 print(" ---> echec")
+                satisfiability_echec.append(seq)
         except func_timeout.FunctionTimedOut:
             timeouts_sat_tests += 1
             print(" ---> timeout")
         except Exception as e:
             exceptions_sat_tests += 1
             print(" ---> exception levee")
+
+        print(
+            "satisfiability_success :"
+        )
+        for e in satisfiability_success:
+            print(e)
+            print()
+
+        print(
+            "satisfiability_echec :"
+        )
+        for e in satisfiability_echec:
+            print(e)
+            print()
 
     # sur cet ensemble de tests, votre methode devrait toujours
     # retourner qu'il n'existe pas de solution
@@ -665,14 +708,30 @@ def test_code():
                                              [seq, bound]):
                 unsat_tests_success += 1
                 print(" ---> succes")
+                unsatisfiability_success.append(seq)
             else:
                 print(" ---> echec")
+                unsatisfiability_echec.append(seq)
+
         except func_timeout.FunctionTimedOut:
             timeouts_unsat_tests += 1
             print(" ---> timeout")
         except Exception as e:
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
+        print(
+            "unsatisfiability_success :"
+        )
+        for e in unsatisfiability_success:
+            print(e)
+            print()
+
+        print(
+            "unsatisfiability_echec :"
+        )
+        for e in unsatisfiability_echec:
+            print(e)
+            print()
 
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
@@ -724,9 +783,26 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 ##################################################################################################################################################
-
-exist_sol("01", 0)
-exist_sol("11", 0)
+#
+print(int(1 / 2))
+exist_sol('00', 0),
+exist_sol('1', 0)
+exist_sol('11', 0)
+exist_sol('111', 0)
+exist_sol('01000', 0)
+# exist_sol('00110000', 1)
+# exist_sol('11', 1)
+#
+# exist_sol("01", 0)
+# exist_sol('00110000', int(1/2))
+# exist_sol("11", 0)
+# exist_sol(str(int(1/2)), 0)
+#
+# examples = [('00', 0),
+#                 ('1', 0),
+#                 ('01000', 0),
+#                 ('00110000', 1),
+#                 ('11', 1)]
 
 if test:
     print("Let's test your code")
@@ -743,7 +819,11 @@ elif options.bound != None:
     if exist_sol(options.sequence, options.bound):
         print("SAT")
         if options.display:
-            print_solution()
+            # print_solution()
+            print_solution_matrix(
+                options.sequence,
+                options.bound
+            )
 
     print("FIN DU TEST DE SATISFIABILITE")
 
