@@ -6,13 +6,78 @@
 # la librairie func_timeout
 import sys
 
-# from pysat.solvers import Minisat22
+import numpy
+from numpy import NaN
+from pysat.solvers import Minisat22
 from pysat.solvers import Glucose4
 # from pysat.formula import CNF
 # from pysat.formula import IDPool
 from pysat.card import *
 from optparse import OptionParser
 import func_timeout
+
+import inspect
+class AutoIndent(object):
+    '''Indent debug output based on function call depth.'''
+
+    def __init__(self, stream, depth=len(inspect.stack())):
+        '''
+        stream is something like sys.stdout.
+        depth is to compensate for stack depth.
+        The default is to get current stack depth when class created.
+
+        '''
+        self.stream = stream
+        self.depth = depth
+
+    def indent_level(self):
+        return len(inspect.stack()) - self.depth
+
+    def write(self, data):
+        indentation = '  ' * self.indent_level()
+        def indent(l):
+            if l:
+                return indentation + l
+            else:
+                return l
+        data = '\n'.join([indent(line) for line in data.split('\n')])
+        self.stream.write(data)
+sys.stdout = AutoIndent(sys.stdout)
+# stream = AutoIndent(stream)
+
+
+# class AutoIndent(object):
+#     def __init__(self, stream):
+#         self.stream = stream
+#         self.offset = 0
+#         self.frame_cache = {}
+#
+#     def indent_level(self):
+#         i = 0
+#         base = sys._getframe(2)
+#         f = base.f_back
+#         while f:
+#             if id(f) in self.frame_cache:
+#                 i += 1
+#             f = f.f_back
+#         if i == 0:
+#             # clear out the frame cache
+#             self.frame_cache = {id(base): True}
+#         else:
+#             self.frame_cache[id(base)] = True
+#         return i
+#
+#     def write(self, stuff):
+#         indentation = '  ' * self.indent_level()
+#         def indent(l):
+#             if l:
+#                 return indentation + l
+#             else:
+#                 return l
+#         stuff = '\n'.join([indent(line) for line in stuff.split('\n')])
+#         self.stream.write(stuff)
+# sys.stdout = AutoIndent(sys.stdout)
+
 
 # OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE
 
@@ -99,11 +164,11 @@ def are_neighbors(i, j, k, l):
     return False
 
 
-def potential_neighbors_pairs_disjunction(n
-                                          , vpool
-                                          , a
-                                          , b):
-    print("potential_neighbors_pairs_disjunction", a, b)
+def get_pair_potential_neighborings_disjunction(n
+                                                , vpool
+                                                , a
+                                                , b):
+    print("get_pair_potential_neighborings_disjunction", a, b)
     potential_neighbors_disjunction = []
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
@@ -121,6 +186,8 @@ def potential_neighbors_pairs_disjunction(n
                         d.append(vpool.id((k, l, b)))
             # print("d = ", d)
             potential_neighbors_disjunction.append(d)
+    # print("potential_neighbors_disjunction = ", potential_neighbors_disjunction)
+    return potential_neighbors_disjunction
 
 
 def cnf_set_neighbors(n,
@@ -165,15 +232,16 @@ def get_potential_neighbors_pairs_disjunctions(seq
         potential_neighbors_pairs_disjunctions = []
         for i in potential_neighbors:
             for j in potential_neighbors:
-                if i != j:
+                if i != j and \
+                        j != i+1: # assured by sequence_neighboring_maintain
                     potential_neighbors_pairs_disjunctions \
-                        .append(potential_neighbors_pairs_disjunction(n
-                                                                      ,
-                                                                      vpool
-                                                                      ,
-                                                                      i
-                                                                      ,
-                                                                      j))
+                        .append(get_pair_potential_neighborings_disjunction(n
+                                                                            ,
+                                                                            vpool
+                                                                            ,
+                                                                            i
+                                                                            ,
+                                                                            j))
         return potential_neighbors_pairs_disjunctions
     return None
 
@@ -185,16 +253,19 @@ def get_potential_neighbors_pairs_disjunctions(seq
 # ensemble de clauses card(X, k),
 # qui est satisfaisable si et seulement si
 # il existe au moins k variables de X qui sont vraies
-def card(X
+def card(cnf
+         , vpool
+         , X
          , k
-         , cnf
-         , vpool):
-    print("card", X, k)
+         ):
+    depth = 5
+    txt = "card("
+    # print(f'{txt, X, k:->depth}')
     # cnf.extend(CardEnc.atleast(lits
     #                            , 5
     #                            , vpool=myvpool,
     #                            encoding=EncType.seqcounter))
-    cnf.append(CardEnc.atleast(lits=X
+    cnf.extend(CardEnc.atleast(lits=X
                                , bound=k
                                , vpool=vpool
                                , encoding=EncType.seqcounter
@@ -260,12 +331,31 @@ def max1location_per_value(n, cnf, vpool):
                             cnf.append([-vpool.id((x, y, index)),
                                         -vpool.id((x2, y2, index))])
 
-
+def set_min_cardinality(seq
+                        , n
+                        , cnf
+                        , vpool
+                        , value):
+    print("set_min_cardinality")
+    potential_neighbors_pairs_disjunctions \
+        = get_potential_neighbors_pairs_disjunctions(seq
+                                                     , n
+                                                     , vpool
+                                                     , value)
+    if potential_neighbors_pairs_disjunctions is not None:
+        #     for d in potential_neighbors_pairs_disjunctions:
+        #         cnf.append(d)
+        card(cnf
+             , vpool
+             , potential_neighbors_pairs_disjunctions
+             , 1
+             )
 def set_clauses(seq,
                 n,
                 cnf,
                 vpool
                 , bound
+                , print_depth
                 ):
     # sequence elements 2 by 2 are neighbors
     sequence_neighboring_maintain(n,
@@ -276,21 +366,14 @@ def set_clauses(seq,
     max1value_per_location(n, cnf, vpool)
     max1location_per_value(n, cnf, vpool)
     all_values_used(n, cnf, vpool)
+    set_min_cardinality(
+        seq
+        , n
+        , cnf
+        , vpool
+        , value=1
+    )
 
-    # potent = get_potential_neighbors_pairs_disjunctions(seq
-    #                                                     , n
-    #                                                     , vpool
-    #                                                     , 1)
-    # if potent is not None:
-    #     card(potent
-    #          , bound
-    #          , cnf
-    #          )
-
-    # # au moins une valeur par ligne
-    # min1value_per_line(size, cnf, vpool)
-    # # au moins une valeur par colonne
-    # min1value_per_column(size, cnf, vpool)
     return cnf
 
 
@@ -309,119 +392,132 @@ def print_solution_variables(seq,
                 if vpool.id((i, j, v)) in sol:
                     print(i, j, seq[v])
 
-
-def get_matrix(n, vpool, sol):
-    matrix = [[0 for x in range(n)] for y in range(n)]
-    for i in range(n):
+def get_matrix(n
+               , vpool
+               , sol):
+    matrix = numpy.matrix(numpy.zeros(shape=(n, n)))
+    # matrix = [[0 for x in range(n)] for y in range(n)]
+    # print("n", n)
+    for index_i in range(n):
         for j in range(n):
+            # print("i", index_i)
+            # print("j", j)
+
             location_valued = False
             for v in range(n):
-                if vpool.id((i, j, v)) in sol:
-                    matrix[i][j] = v
+                if vpool.id((index_i, j, v)) in sol:
+                    # print("v: ", v)
+                    # print("type(v): ", type(v))
+                    matrix[index_i, j] = v
                     location_valued = True
             if not location_valued:
-                matrix[i][j] = -1
+                # print("Error: no value for location: ", index_i, j)
+                matrix[index_i, j] = None
+                # print(matrix)
+            # print(matrix)
+
     return matrix
 
 
 def get_value_matrix(matrix
-                     , seq):
-    value_matrix = [[0 for i in range(len(matrix))] for j in
-                    range(len(matrix))]
-    for i in range(len(matrix)):
-        for j in range(len(matrix)):
-            index = matrix[i][j]
-            print("index", index, "type : ", type(index))
-            print("seq index", seq[index], "type : ", type(seq[index]))
+                     , seq
+                     , n):
+    print("get_value_matrix")
+    print("from matrix:")
+    print(matrix)
+    # value_matrix = [[0 for i in range(len(matrix))] for j in
+    #                 range(len(matrix))]
+    value_matrix = numpy.matrix(numpy.zeros(shape=(n, n)))
 
-            if index == -1:
-                value_matrix[i][j] = -1
+    for i in range(n):
+        for j in range(n):
+            # index = matrix[i][j]
+            index = matrix[i, j]
+            # print("index", index, "type : ", type(index))
+            # print("seq index", seq[index], "type : ", type(seq[index]))
+
+            # condition if index is numpy nan numpy.float64:
+            if numpy.isnan(index):
+                value_matrix[i, j] = None
+                # value_matrix[i][j] = 3
             else:
+                index = int(index)
                 # print("index type : ", type(seq[index]))
-                value_matrix[i][j] = seq[index]
+                value_matrix[i, j] = seq[index]
     return value_matrix
 
 
-def get_score(value_matrix):
+def get_representation(value_matrix
+                       , n):
+
+    representation = numpy.matrix(numpy.zeros(shape=(n, n), dtype=str))
+    for i in range(n):
+        for j in range(n):
+            current = value_matrix[i, j]
+            if numpy.isnan(current):
+                representation[i, j] = " "
+            else:
+                representation[i, j] = str(current)
+            # representation += str(value_matrix[i][j])
+    return representation
+def get_score(value_matrix
+              , n):
+    print("get_score")
     # score = lambda value_matrix, n: sum([value_matrix[i][j] == i + 1 for i in range(n) for j in range(n)])
     score = 0
-    for i in range(len(value_matrix)):
-        for j in range(len(value_matrix)):
-            current = value_matrix[i][j]
-            print(i, j, " is ", current)
+    for i in range(n):
+        for j in range(n):
+            current = value_matrix[i, j]
+            # print(i, j, " is ", current)
             # current type print
-            print(type(current))
+            # print("current type : ", type(current))
 
-            if current == "1":
-                # print(i, j, " is ", current)
-                if i + 1 < len(value_matrix):
-                    if current == value_matrix[i + 1][j]:
+            if current == 1:
+                if i + 1 < n:
+                    if current == value_matrix[i + 1, j]:
                         score += 1
                         # print(i, j, current, "="
                         #       , i + 1, j,
-                        #       value_matrix[i + 1][j])
+                        #       value_matrix[i + 1, j])
                         # print("score", score)
-                if j + 1 < len(value_matrix):
-                    if current == value_matrix[i][j + 1]:
+                if j + 1 < n:
+                    if current == value_matrix[i, j + 1]:
                         score += 1
                         # print(i, j, current, "="
-                        #       , i, j + 1, value_matrix[i][j + 1])
+                        #       , i, j + 1, value_matrix[i, j + 1])
                         # print("score", score)
             else:
                 # print(i, j, " is -1")
                 pass
     return score
 
-
 def print_solution_matrix(matrix
                           , seq
                           , mode="all"):
     print("Solution value_matrix:")
     for mode in ("index", "value"):
-        print("mode : ", mode)
+        print("mode:%s" % mode)
         for i in range(len(matrix)):
             print()
             for j in range(len(matrix)):
-                if 0 <= matrix[i][j]:
+                # if 0 <= matrix[i][j]:
+                if 0 <= matrix[i, j]:
                     if mode == "index" \
                             or mode == "all":
-                        print(matrix[i][j], end=" ")
+                        print(matrix[i, j], end=" ")
+                        # print(matrix[i][j], end=" ")
                     if mode == "value" or mode == "all":
-                        print(seq[matrix[i][j]], end=" ")
+                        print(seq[matrix[i, j]], end=" ")
+                        # print(seq[matrix[i][j]], end=" ")
                 else:
                     print("*", end=" ")
         print()
 
 
-# def print_solution(seq,
-#                    n,
-#                    vpool,
-#                    sol
-#                    , scoring=True):  # affiche la solution
-#     if scoring:
-#         score = 0
-#
-#     # print_solution_variables(seq,
-#     #                          n,
-#     #                          vpool,
-#     #                          sol)
-#     print()
-#     print("value_matrix representation:")
-#     for i in range(n):
-#         for j in range(n):
-#             location_valued = False
-#             for v in range(n):
-#                 if vpool.id((i, j, v)) in sol:
-#                     print(seq[v], end=" ")
-#                     location_valued = True
-#
-#             if not location_valued: print("* ", end='')
-#         print()
-
-
 def solve(seq,
           bound
-          , solver=Glucose4(use_timer=True)  # MiniSAT
+          , solver=Minisat22(use_timer=True)  # MiniSAT
+          # , solver=Glucose4(use_timer=True)  # MiniSAT
 
           ):
     # retourne un plongement de score au moins 'bound'
@@ -435,12 +531,16 @@ def solve(seq,
     n = len(seq)
 
     # contraintes ##########################
+    print_depth = 0
     cnf = set_clauses(seq,
                       n,
                       cnf,
                       vpool
-                      , bound)
-    print("clauses quantity:", cnf.nv)
+                      , bound
+                      , print_depth+1)
+    txt = "clauses quantity:"
+    # print(f'{txt, cnf.nv:_>print_depth}')
+    print()
 
     # solver = Glucose4(use_timer=True)
     solver.append_formula(cnf.clauses, no_return=False)
@@ -455,32 +555,35 @@ def solve(seq,
     print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
     if resultat:
         interpretation = interpret(seq
-                                    , n
-                                    , vpool
-                                    , solver
-                                    , resultat
+                                   , n
+                                   , vpool
+                                   , solver
+                                   , resultat
                                    )
         matrix = get_matrix(n
                             , vpool
                             , interpretation
                             )
         value_matrix = get_value_matrix(matrix
-                                        , seq)
+                                        , seq
+                                        , n)
         affichage_sol = True
         if affichage_sol:
             print("\nVoici une solution: \n")
 
-            # print_value_matrix(value_matrix)
-            print_solution_matrix(matrix
-                                  , seq
-                                  , mode="value")
+            print(get_representation(value_matrix
+                                     , n))
+            # print_solution_matrix(matrix
+            #                       , seq
+            #                       , mode="value")
             # print_solution(seq,
             #                n,
             #                vpool,
             #                filtered_interpretation
             #                # resultat
             #                )
-        score = get_score(value_matrix)
+        score = get_score(value_matrix
+                          , n)
         print("score:", score)
         if score >= bound:
             return value_matrix
@@ -511,8 +614,8 @@ def exist_sol(seq, bound):
     print()
     print("exist_sol() ")
     print("seq: ", seq)
-    for aa in seq:
-        print("aa : ", aa, "aa type : ", type(aa))
+    # for aa in seq:
+    #     print("aa : ", aa, "aa type : ", type(aa))
     print("bound: ", bound)
 
     if solve(seq, bound) is not None:
@@ -602,39 +705,39 @@ def test_code():
     unsatisfiability_echec = []
 
     examples = [
-        # ('00', 0),
-        #         ('1', 0),
-        #         ('01000', 0),
-        #         ('00110000', 1),
+        ('00', 0),
+        ('1', 0),
+        ('01000', 0),
+        ('00110000', 1),
 
-        # ('11', 1),
-        # ('111', 2),
-        # ('1111', 4),
-        # ('1111111', 8), ("111111111111111", 22),
-        # ("1011011011", 7),
-        # ("011010111110011", 13), ("01101011111000101", 11),
-        # ("0110111001000101", 8),
-        # ("000000000111000000110000000", 5), ('100010100', 0),
-        # ('01101011111110111', 17), ('10', 0), ('10', 0),
-        # ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
-        # ('00111', 2), ('01001', 1),
-        # ('111010', 3), ('110110', 3), ('0010110', 2),
-        # ('0000001', 0), ('01101000', 2), ('10011111', 7),
-        # ('011001101', 5), ('000110111', 5),
-        # ('0011000010', 2), ('1000010100', 2),
-        # ('11000111000', 5), ('01010101110', 4),
-        # ('011001100010', 5), ('010011100010', 5),
-        # ('1110000110011', 8), ('1000101110001', 4),
-        # ('11010101011110', 10), ('01000101000101', 0),
-        # ('111011100100000', 8),
-        # ('000001100111010', 6), ('0110111110011000', 11),
-        # ('0011110010110110', 11), ('01111100010010101', 11),
-        # ('10011011011100101', 12),
-        # ('101111101100101001', 13), ('110101011010101010', 9),
-        # ('1111101010000111001', 14),
-        # ('0111000101001000111', 11),
-        # ('10111110100001010010', 12),
-        # ('10110011010010001110', 11)
+        ('11', 1),
+        ('111', 2),
+        ('1111', 4),
+        ('1111111', 8), ("111111111111111", 22),
+        ("1011011011", 7),
+        ("011010111110011", 13), ("01101011111000101", 11),
+        ("0110111001000101", 8),
+        ("000000000111000000110000000", 5), ('100010100', 0),
+        ('01101011111110111', 17), ('10', 0), ('10', 0),
+        ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
+        ('00111', 2), ('01001', 1),
+        ('111010', 3), ('110110', 3), ('0010110', 2),
+        ('0000001', 0), ('01101000', 2), ('10011111', 7),
+        ('011001101', 5), ('000110111', 5),
+        ('0011000010', 2), ('1000010100', 2),
+        ('11000111000', 5), ('01010101110', 4),
+        ('011001100010', 5), ('010011100010', 5),
+        ('1110000110011', 8), ('1000101110001', 4),
+        ('11010101011110', 10), ('01000101000101', 0),
+        ('111011100100000', 8),
+        ('000001100111010', 6), ('0110111110011000', 11),
+        ('0011110010110110', 11), ('01111100010010101', 11),
+        ('10011011011100101', 12),
+        ('101111101100101001', 13), ('110101011010101010', 9),
+        ('1111101010000111001', 14),
+        ('0111000101001000111', 11),
+        ('10111110100001010010', 12),
+        ('10110011010010001110', 11)
     ]
     # chaque couple de cette liste est formee d'une sequence et de son meilleur score
 
@@ -783,30 +886,11 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 ##################################################################################################################################################
-#
-print(int(1 / 2))
-exist_sol('00', 0),
-exist_sol('1', 0)
-exist_sol('11', 0)
-exist_sol('111', 0)
-exist_sol('01000', 0)
-# exist_sol('00110000', 1)
-# exist_sol('11', 1)
-#
-# exist_sol("01", 0)
-# exist_sol('00110000', int(1/2))
-# exist_sol("11", 0)
-# exist_sol(str(int(1/2)), 0)
-#
-# examples = [('00', 0),
-#                 ('1', 0),
-#                 ('01000', 0),
-#                 ('00110000', 1),
-#                 ('11', 1)]
 
 if test:
     print("Let's test your code")
     test_code()
+
 elif options.bound != None:
     # cas ou la borne est fournie en entree:
     # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
@@ -819,11 +903,12 @@ elif options.bound != None:
     if exist_sol(options.sequence, options.bound):
         print("SAT")
         if options.display:
+            pass
             # print_solution()
-            print_solution_matrix(
-                options.sequence,
-                options.bound
-            )
+            # print_solution_matrix(
+            #     options.sequence,
+            #     options.bound
+            # )
 
     print("FIN DU TEST DE SATISFIABILITE")
 
@@ -833,7 +918,7 @@ elif not (incremental):
     #   on affiche egalement un plongement de score maximal
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
 
-    test_code()
+    # test_code()
 
     if len(sys.argv) > 1:
         print(
@@ -849,3 +934,39 @@ elif not test:
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
     # A COMPLETER
     print("FIN DU CALCUL DU MEILLEUR SCORE")
+
+# n = 9
+# # matrixinit = numpy.matrix(numpy.zeros(shape=(9, 9), dtype=str))
+# matrixinit = numpy.matrix(numpy.zeros(shape=(9, 9)))
+# # matrixinit = numpy.matrix(numpy.zeros(shape=(len(options.sequence), len(options.sequence))))
+# print(matrixinit)
+# for i in range(n):
+#     for j in range(n):
+#         matrixinit[i, j] = i+j
+#         # matrixinit[i, j] = str(i+j)
+#
+# print(matrixinit)
+#
+# matrixi = numpy.matrix(numpy.zeros(shape=(9, 9)))
+#
+# for i in range(n):
+#     matrixi[i, 0] = i
+#
+# print(matrixi
+#       )
+
+
+# print(int(1 / 2))
+# exist_sol('00', 0),
+# exist_sol('1', 0)
+# exist_sol('11', 0)
+# exist_sol('111', 0)
+# exist_sol('01000', 0)
+# exist_sol('00110000', 1)
+exist_sol('11', 1)
+#
+# exist_sol("01", 0)
+# exist_sol('00110000', int(1 / 2))
+# exist_sol("11", 0)
+
+exist_sol('10110011010010001110', 11)
