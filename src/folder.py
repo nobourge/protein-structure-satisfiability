@@ -18,15 +18,15 @@ import func_timeout
 
 import inspect
 class AutoIndent(object):
-    '''Indent debug output based on function call depth.'''
+    """Indent debug output based on function call depth."""
 
     def __init__(self, stream, depth=len(inspect.stack())):
-        '''
+        """
         stream is something like sys.stdout.
         depth is to compensate for stack depth.
         The default is to get current stack depth when class created.
 
-        '''
+        """
         self.stream = stream
         self.depth = depth
 
@@ -133,7 +133,6 @@ affichage_sol = options.affichage_sol
 verb = options.verbose
 incremental = options.incremental
 test = options.test
-
 
 ###############################################################################################
 
@@ -317,7 +316,6 @@ d'après pavage.py
     # cnf.append(d)
 """
 
-
 # si X-x,y,i alors pas X-x',y',i
 def max1location_per_value(n, cnf, vpool):
     print()
@@ -375,7 +373,6 @@ def set_clauses(seq,
     )
 
     return cnf
-
 
 # print the variables of the solution
 def print_solution_variables(seq,
@@ -627,20 +624,42 @@ def exist_sol(seq, bound):
 # vous pouvez utiliser les methodes de la classe pysat.card pour
 # creer des contraintes de cardinalites (au moins k, au plus k,...)
 
-def dichotomy(seq):
+def get_max_contacts(seq: str) -> int:
+    n = len(seq)
+    total = 0
+    for i in range(n-3):
+        if seq[i] != "1": continue
+        total += min(2, seq[i+3:n:2].count("1"))
+    return total
+
+def dichotomy(seq, lower_bound):
     # retourne un plongement de score au moins 'lower_bound' si
     # aucune solution n'existe, retourne None cette fonction utilise
     # la methode de dichotomie pour trouver un plongement de score au
     # moins 'lower_bound' A COMPLETER
-    return None
+    if not exist_sol(seq, lower_bound): return None
+    high_bound = get_max_contacts(seq)
+    if exist_sol(seq, high_bound): return solve(seq, high_bound)
 
+    while high_bound - lower_bound == 1:
+        mid_bound = (high_bound + lower_bound) // 2
+        if exist_sol(seq, mid_bound):
+            lower_bound = mid_bound
+        else: high_bound = mid_bound
+    return solve(seq, lower_bound)
+
+    # 1 2 3 4 5
+    # l   m   h
+    # 1 2 3
+    # l m h
+    # 2 3
+    # l h
 
 def incremental_search(seq, lower_bound):
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution n'existe, retourne None
     # cette fonction utilise une recherche incrémentale
     # pour trouver un plongement de score au moins 'lower_bound'
-
     bound = lower_bound
     sol_exists = exist_sol(seq, bound)
     while sol_exists:
@@ -649,14 +668,11 @@ def incremental_search(seq, lower_bound):
         bound += 1
 
     if bound > lower_bound:
-        sol = solve(seq
-                    , bound - 1
-                    )
+        sol = solve(seq, bound-1)
         return sol
     else:
         print("Pas de solution")
         return None
-
 
 def score(seq, sol):
     # retourne le score d'un plongement
@@ -690,9 +706,8 @@ def compute_max_score(seq, method):
     # si l'option -i est active, on utilise la recherche incrémentale
     if method == "incremental":
         score_best = incremental_search(seq, 0)
-    else:
-        score_best = dichotomy(seq)
-    return (score_best)
+    else: score_best = dichotomy(seq, 0)
+    return score_best
 
 
 ####################################################################
