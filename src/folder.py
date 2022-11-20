@@ -188,7 +188,7 @@ def get_pair_potential_neighborings_disjunction(n
     # print("potential_neighbors_disjunction = ", potential_neighbors_disjunction)
     return potential_neighbors_disjunction
 
-
+#@ quelle est la différence entre la func ci dessus et ci dessous ?
 def cnf_set_neighbors(n,
                       cnf,
                       vpool,
@@ -212,7 +212,7 @@ def cnf_set_neighbors(n,
             # print("d = ", d)
             cnf.append(d)
 
-
+#@
 def get_potential_neighbors_pairs_disjunctions(seq
                                                , n
                                                , vpool
