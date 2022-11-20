@@ -379,6 +379,7 @@ def print_solution_variables(seq,
                              n,
                              vpool,
                              sol):
+    #return
     print("Solution variables:")
     for i in range(n):
         for j in range(n):
@@ -660,19 +661,10 @@ def incremental_search(seq, lower_bound):
     # si aucune solution n'existe, retourne None
     # cette fonction utilise une recherche incrémentale
     # pour trouver un plongement de score au moins 'lower_bound'
-    bound = lower_bound
-    sol_exists = exist_sol(seq, bound)
-    while sol_exists:
-        sol_exists = exist_sol(seq, bound)
-        # tant qu'il existe un plongement de score au moins 'bound'
-        bound += 1
-
-    if bound > lower_bound:
-        sol = solve(seq, bound-1)
-        return sol
-    else:
-        print("Pas de solution")
-        return None
+    if not exist_sol(seq, lower_bound): return None
+    lower_bound += 1
+    while exist_sol(seq, lower_bound): lower_bound += 1
+    return solve(seq, lower_bound-1)
 
 def score(seq, sol):
     # retourne le score d'un plongement
