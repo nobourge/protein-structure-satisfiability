@@ -30,7 +30,7 @@ import multiprocessing
 
 # on doit TOUJOURS donner une sequence
 # * lorsqu'une borne est donnee, votre programme doit tester que le meilleur score de la sequence est superieur ou egale a cette borne
-# * lorsqu'aucune borne n'est donnee, alors votre programme doit calculer le meilleur score pour la sequence, par defaut en utilisant une recherche par dichotomie, et en utilisant une methode incrementale si l'option -i est active
+# * lorsqu'aucune borne sequence_length'est donnee, alors votre programme doit calculer le meilleur score pour la sequence, par defaut en utilisant une recherche par dichotomie, et en utilisant une methode incrementale si l'option -i est active
 #
 # l'option -v vous permet de creer un mode 'verbose'
 # si l'option -t est active, alors le code execute uniquement la fonction test_code() implementee ci-dessous, qui vous permet de tester votre code avec des exemples deja fournis. Si l'execution d'un test prend plus que TIMEOUT secondes (fixe a 10s ci-dessous), alors le test s'arrete et la fonction passe au test suivant
@@ -97,9 +97,9 @@ def test_code():
     # maxlength = 25
     # m = 2
     # l = []
-    # for n in range(maxlength):
+    # for sequence_length in range(maxlength):
         # for i in range(m):
-            # seq = gen(n+2)
+            # seq = gen(sequence_length+2)
             # print(seq)
             # b = compute_max_score(seq)
             # print(int(b))
@@ -177,7 +177,7 @@ def test_code():
                          sat_tests_failure +=1   
                          print(" ---> echec")
 
-    # sur cet ensemble de tests, votre methode devrait toujours retourner qu'il n'existe pas de solution
+    # sur cet ensemble de tests, votre methode devrait toujours retourner qu'il sequence_length'existe pas de solution
     print("\n****** Test de d'insatisfiabilite ******\n")
     for (seq,maxbound) in examples:
         # initialize queue

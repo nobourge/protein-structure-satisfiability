@@ -12,8 +12,8 @@ for i in range(n):
 sol = [6, 0, 1]
 
 matrix = numpy.matrix(numpy.zeros(shape=(n, n)))
-# matrix = [[0 for x in range(n)] for y in range(n)]
-print("n", n)
+# matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
+print("sequence_length", n)
 for index_i in range(n):
     for j in range(n):
         print("i", index_i)
@@ -32,17 +32,17 @@ for index_i in range(n):
             # print(matrix)
         print(matrix)
 
-# def get_matrix(n, vpool, sol):
-#     matrix = numpy.matrix(numpy.zeros(shape=(n, n)))
-#     # matrix = [[0 for x in range(n)] for y in range(n)]
-#     print("n", n)
-#     for index_i in range(n):
-#         for j in range(n):
+# def get_matrix(sequence_length, vpool, sol):
+#     matrix = numpy.matrix(numpy.zeros(shape=(sequence_length, sequence_length)))
+#     # matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
+#     print("sequence_length", sequence_length)
+#     for index_i in range(sequence_length):
+#         for j in range(sequence_length):
 #             print("i", index_i)
 #             print("j", j)
 #
 #             location_valued = False
-#             for v in range(n):
+#             for v in range(sequence_length):
 #                 if vpool.id((index_i, j, v)) in sol:
 #                     print("v: ", v)
 #                     print("type(v): ", type(v))
