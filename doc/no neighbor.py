@@ -15,13 +15,13 @@ from pysat.card import ITotalizer
 # "créateur" de variables vous utilisez
 # (c'est utile pour que la méthode ne crée pas des variables qui serait
 # déjà utilisés dans d'autres parties de votre programme).
-# L'argument top_id n'est a priori pas utile, et
+# L'argument top_id sequence_length'est a priori pas utile, et
 # l'argument 'encoding' permet de changer l'algorithme utiliser
 # pour créer cet ensemble de clauses.
 # Prenons un exemple. Supposons qu'on se donne un
-# entier n et qu'on veuille
-# remplir un tableau de n cases avec des pions de telle sorte que
-# 1) il n'y jamais deux pions voisins
+# entier sequence_length et qu'on veuille
+# remplir un tableau de sequence_length cases avec des pions de telle sorte que
+# 1) il sequence_length'y jamais deux pions voisins
 # 2) il y a au moins 5 pions dans le tableau
 # On peut naturellement prendre l'ensemble des variables
 # X1,..., Xn avec la sémantique

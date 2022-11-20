@@ -157,7 +157,7 @@ def affichage_solution(interpretation):
 if affichage_sol and resultat:
     print("\nVoici une solution: \n")
     interpretation = s.get_model()
-    # cette interpretation est longue, on va filtrer les valeurs positives (il y a en n fois moins)
+    # cette interpretation est longue, on va filtrer les valeurs positives (il y a en sequence_length fois moins)
     interpretation_filtree = list(filter(lambda x : x >=0, interpretation))
     affichage_solution(interpretation_filtree)
 
@@ -177,6 +177,6 @@ if affichage_sol and resultat:
         else:
             print("\nSolution pas unique, en voici une autre:\n")
             interpretation = s.get_model()
-            # cette interpretation est longue, on va filtrer les valeurs positives (il y a en n fois moins)
+            # cette interpretation est longue, on va filtrer les valeurs positives (il y a en sequence_length fois moins)
             interpretation_filtree = list(filter(lambda x : x >=0, interpretation))
             affichage_solution(interpretation_filtree)

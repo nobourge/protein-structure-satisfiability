@@ -6,47 +6,114 @@
 # la librairie func_timeout
 import sys
 
+import numpy
+from numpy import NaN
 from pysat.solvers import Minisat22
 from pysat.solvers import Glucose4
-from pysat.formula import CNF
-from pysat.formula import IDPool
+# from pysat.formula import CNF
+# from pysat.formula import IDPool
 from pysat.card import *
 from optparse import OptionParser
 import func_timeout
 
-##### OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE ###############
+import inspect
+
+
+class AutoIndent(object):
+    '''Indent debug output based on function call depth.'''
+
+    def __init__(self, stream, depth=len(inspect.stack())):
+        '''
+        stream is something like sys.stdout.
+        depth is to compensate for stack depth.
+        The default is to get current stack depth when class created.
+
+        '''
+        self.stream = stream
+        self.depth = depth
+
+    def indent_level(self):
+        return len(inspect.stack()) - self.depth
+
+    def write(self, data):
+        indentation = '  ' * self.indent_level()
+
+        def indent(l):
+            if l:
+                return indentation + l
+            else:
+                return l
+
+        data = '\n'.join([indent(line) for line in data.split('\n')])
+        self.stream.write(data)
+
+
+sys.stdout = AutoIndent(sys.stdout)
+# stream = AutoIndent(stream)
+
+
+# class AutoIndent(object):
+#     def __init__(self, stream):
+#         self.stream = stream
+#         self.offset = 0
+#         self.frame_cache = {}
+#
+#     def indent_level(self):
+#         i = 0
+#         base = sys._getframe(2)
+#         f = base.f_back
+#         while f:
+#             if id(f) in self.frame_cache:
+#                 i += 1
+#             f = f.f_back
+#         if i == 0:
+#             # clear out the frame cache
+#             self.frame_cache = {id(base): True}
+#         else:
+#             self.frame_cache[id(base)] = True
+#         return i
+#
+#     def write(self, stuff):
+#         indentation = '  ' * self.indent_level()
+#         def indent(l):
+#             if l:
+#                 return indentation + l
+#             else:
+#                 return l
+#         stuff = '\sequence_length'.join([indent(line) for line in stuff.split('\sequence_length')])
+#         self.stream.write(stuff)
+# sys.stdout = AutoIndent(sys.stdout)
+
+
+# OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE
 
 # Usage: folder.py [options]
 
-# Options:
-# -h, --help            show this help message and exit
-# -s SEQ, --sequence=SEQ
-# specify the input sequence
-# -b BOUND, --bound=BOUND
-# specify a lower bound on the score
-# -p, --print           print solution
-# -i, --incremental     incremental mode: try small bounds first and increment
-# -v, --verbose         verbose mode
-# -t, --test            testing mode
+# Options: -h, --help            show this help message and exit -s
+# SEQ, --sequence=SEQ specify the input sequence -b BOUND,
+# --bound=BOUND specify a lower bound on the score -p, --print
+# print solution -i, --incremental     incremental mode: try small
+# bounds first and increment -v, --verbose         verbose mode -t,
+# --test            testing mode
 
-# on doit TOUJOURS donner une sequence
-# * lorsqu'une borne est donnee,
-#   votre programme doit tester que
-#       le meilleur score de la sequence est superieur ou egal a cette borne
+# on doit TOUJOURS donner une sequence * lorsqu'une borne est donnee,
+# votre programme doit tester que le meilleur score de la sequence
+# est superieur ou egal a cette borne
 
-# * lorsqu'aucune borne n'est donnee,
-#   alors votre programme doit calculer le meilleur score pour la sequence,
-#       par defaut en utilisant une recherche par dichotomie,
-#       et en utilisant une methode incrementale si l'option -i est active
+# * lorsqu'aucune borne sequence_length'est donnee, alors votre programme doit
+# calculer le meilleur score pour la sequence, par defaut en
+# utilisant une recherche par dichotomie, et en utilisant une methode
+# incrementale si l'option -i est active
 #
 # l'option -v vous permet de creer un mode 'verbose'
 
-# si l'option -t est active,
-#   alors le code execute uniquement la fonction test_code() implementee ci-dessous,
-#   qui vous permet de tester votre code avec des exemples deja fournis.
+# si l'option -t est active, alors le code execute uniquement la
+# fonction test_code() implementee ci-dessous, qui vous permet de
+# tester votre code avec des exemples deja fournis.
 
-# Si l'execution d'un test prend plus que TIMEOUT secondes (fixe a 10s ci-dessous),
-#   alors le test s'arrete et la fonction passe au test suivant
+# Si l'execution d'un test prend plus que TIMEOUT secondes (fixe a
+# 10s ci-dessous), alors le test s'arrete et la fonction passe au
+# test suivant
 
 parser = OptionParser()
 parser.add_option("-s", "--sequence", dest="seq", action="store",
@@ -76,268 +143,366 @@ test = options.test
 
 ###############################################################################################
 
-
 # clauses = contraintes
 
-
 # sequence elements 2 by 2 are neighbors
-def sequence_neighboring_maintain(n
-                                  , cnf,
-                                  vpool):
+def sequence_neighboring_maintain(n, cnf, vpool):
     print()
+    print("sequence_neighboring_maintain")
     print("Les elements de la sequence sont voisins")
-
     for i in range(n - 1):
-        set_neighbors(n,
-                      cnf,
-                      vpool,
-                      i,
-                      i + 1,
-                      )
+        cnf_set_neighbors(n,
+                          cnf,
+                          vpool,
+                          i,
+                          i + 1,
+                          )
 
 
-def set_neighbors(n,
-                  cnf,
-                  vpool,
-                  a,
-                  b):
-    print("set_neighbors", a, b)
+def are_neighbors(i, j, k, l):
+    # retourne True si et seulement si
+    # (i, j) et (k, l) sont voisins
+    # print("are_neighbors")
+    if (abs(i - k) == 0 and
+        abs(j - l) == 1) or \
+            (abs(i - k) == 1 and
+             abs(j - l) == 0):
+        return True
+    return False
+
+
+def get_pair_potential_neighborings_disjunction(n
+                                                , vpool
+                                                , a
+                                                , b):
+    print()
+    print("get_pair_potential_neighborings_disjunction", a, b)
+    potential_neighbors_disjunction = []
     # deux points (i, j), (k, l) ∈ N² sont voisins si
-    # (|i − k|,
-    # |j − l|) ∈ {(0, 1), (1, 0)}.
+    # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
     for i in range(n):
         for j in range(n):
             d = [-vpool.id((i, j, a))]
             for k in range(n):
                 for l in range(n):
-                    print("i = ", i
-                          , "\nj = ", j
-                          , "\nk = ", k
-                          , "\nl = ", l)
-                    if (abs(i - k) == 0 and
-                        abs(j - l) == 1) or \
-                            (abs(i - k) == 1 and
-                             abs(j - l) == 0):
-                        print("              i, j, k, l", i, j, k, l)
+                    # print("i = ", i
+                    #       , "\nj = ", j
+                    #       , "\nk = ", k
+                    #       , "\nl = ", l)
+                    if are_neighbors(i, j, k, l):
+                        # print("              i, j, k, l", i, j, k, l)
                         d.append(vpool.id((k, l, b)))
-            print("d = ", d)
+            # print("d = ", d)
+            potential_neighbors_disjunction.append(d)
+    # print("potential_neighbors_disjunction = ", potential_neighbors_disjunction)
+    return potential_neighbors_disjunction
+
+
+def cnf_set_neighbors(n,
+                      cnf,
+                      vpool,
+                      a,
+                      b):
+    # print("cnf_set_neighbors", a, b)
+    # deux points (i, j), (k, l) ∈ N² sont voisins si
+    # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
+    for i in range(n):
+        for j in range(n):
+            d = [-vpool.id((i, j, a))]
+            for k in range(n):
+                for l in range(n):
+                    # print("i = ", i
+                    #       , "\nj = ", j
+                    #       , "\nk = ", k
+                    #       , "\nl = ", l)
+                    if are_neighbors(i, j, k, l):
+                        # print("              i, j, k, l", i, j, k, l)
+                        d.append(vpool.id((k, l, b)))
+            # print("d = ", d)
             cnf.append(d)
 
 
-def max1value_per_location(seq,
+def get_potential_neighbors_pairs_disjunctions(seq
+                                               , sequence_length
+                                               , vpool
+                                               , value=1):
+    # retourne la liste des voisins potentiels
+    # de la sequence seq
+
+    print("get_potential_neighbors_pairs_disjunctions")
+    potential_neighbors = []
+    for index in range(sequence_length):
+        if seq[index] == value:
+            potential_neighbors.append(index)
+    if 0 < len(potential_neighbors):
+        print("potential_neighbors", potential_neighbors)
+        potential_neighbors_pairs_disjunctions = []
+        for index in potential_neighbors:
+            for index2 in potential_neighbors:
+                if index != index2:
+                    potential_neighbors_pairs_disjunctions \
+                        .append(
+                        get_pair_potential_neighborings_disjunction(sequence_length
+                                                                    ,
+                                                                    vpool
+                                                                    ,
+                                                                    index
+                                                                    ,
+                                                                    index2))
+        return potential_neighbors_pairs_disjunctions
+    return None
+
+
+# fonction card
+# qui prend en entree un
+# ensemble fini de variables X et un entier k,
+# et qui retourne un
+# ensemble de clauses card(X, k),
+# qui est satisfaisable si et seulement si
+# il existe au moins k variables de X qui sont vraies
+def card(cnf
+         , vpool
+         , X
+         , k
+         ):
+    print("card", X, k)
+    cnf.extend(CardEnc.atleast(lits=X
+                               , bound=k
+                               , vpool=vpool
+                               , encoding=EncType.seqcounter
+                               # , encoding=EncType.pairwise
+                               ))
+    # return AtLeast(X, k)
+
+
+# si X-x,y,i alors pas X-x,y,i'
+
+def max1value_per_location(n,
                            cnf,
                            vpool
                            ):
-    print()
+    print("max1value_per_location")
     print("Au plus une valeur par case")
-
-    n = len(seq)
     for i in range(n):
-        for j in range(n):
+        for j in range(n):  # parcours tableau
             for index1 in range(n):
                 for index2 in range(n):
                     if index1 != index2:
                         cnf.append([-vpool.id((i, j, index1)),
                                     -vpool.id((i, j, index2))])
 
-#  fonction card
-#  qui prend en entr´ee un
-# ensemble fini de variables X et un entier k,
-# et qui retourne un
-# ensemble de clauses card(X, k),
-# qui est satisfaisable si et seulement si
-# il existe au moins k variables de X qui sont vraies
-def card(X,
-         k,
-         cnf):
-    cnf.append(CardEnc.atleast(lits=X
-                               , bound=k
-                               # , encoding=EncType.pairwise
-                               ))
-    # return AtLeast(X, k)
+
+# pas sur de celle là
+def all_values_used(n, cnf, vpool):
+    print("all_values_used")
+    print("All values in sequence must be in the answer")
+    for index in range(n):
+        index_at_positions_disjunction = []
+        for i in range(n):
+            for j in range(n):
+                index_at_positions_disjunction.append(vpool.id((i
+                                                                , j
+                                                                ,
+                                                                index)))
+        cnf.append(index_at_positions_disjunction)
+
+
+"""
+d'après pavage.py
+# tout tile doit apparaitre au moins une fois
+# for t in tile_list:         
+    # d = []
+    # for i in range(dim):
+        # for j in range(dim):
+            # d.append(vpool.id((i,j,t)))
+    # cnf.append(d)
+"""
+
+
+# si X-x,y,i alors pas X-x',y',i
+def max1location_per_value(sequence_length
+                           , cnf
+                           , vpool
+                           , matrix_size):
+    print("max1location_per_value")
+    print("Au plus une case par valeur")
+    for index in range(sequence_length):  # take 1 index
+        for x in range(matrix_size):
+            for y in range(matrix_size):  # take 1 cell
+                for x2 in range(matrix_size):
+                    for y2 in range(matrix_size):  # take 2nd cell
+                        if not (x == x2 and
+                                y == y2):
+                            # cell 1 and 2
+                            # can't have same index
+                            cnf.append([-vpool.id((x, y, index)),
+                                        -vpool.id((x2, y2, index))])
+
+
+def set_min_cardinality(seq
+                        , n
+                        , cnf
+                        , vpool
+                        , value
+                        , bound
+                        ):
+    print("set_min_cardinality")
+    potential_neighbors_pairs_disjunctions \
+        = get_potential_neighbors_pairs_disjunctions(seq
+                                                     , n
+                                                     , vpool
+                                                     , value)
+    if potential_neighbors_pairs_disjunctions is not None:
+        #     for d in potential_neighbors_pairs_disjunctions:
+        #         cnf.append(d)
+        card(cnf
+             , vpool
+             , potential_neighbors_pairs_disjunctions
+             , bound
+             )
 
 
 def set_clauses(seq,
-                n,
+                sequence_length,
                 cnf,
                 vpool
+                , bound
+                , matrix_size
                 ):
+    all_values_used(sequence_length
+                    , cnf
+                    , vpool)
+
     # sequence elements 2 by 2 are neighbors
-    sequence_neighboring_maintain(n,
+    sequence_neighboring_maintain(sequence_length,
                                   cnf,
                                   vpool
                                   )
     # au plus une valeur par case
-    max1value_per_location(seq,
-                           cnf,
-                           vpool
-                           )
-    # # au moins une valeur par ligne
-    # min1value_per_line(seq,
-    #                    cnf,
-    #                    vpool)
-    # # au moins une valeur par colonne
-    # min1value_per_column(seq,
-    #                      cnf,
-    #                      vpool)
+    max1value_per_location(sequence_length
+                           , cnf
+                           , vpool)
+    max1location_per_value(sequence_length
+                           , cnf
+                           , vpool
+                           , matrix_size)
+
+    # set_min_cardinality(
+    #     seq
+    #     , sequence_length
+    #     , cnf
+    #     , vpool
+    #     , value=1
+    #     , bound=bound
+    # )
+
     return cnf
 
 
 # print the variables of the solution
 def print_solution_variables(seq,
-                             n,
+                             sequence_length,
+                             matrix_size,
                              vpool,
                              sol):
     print("Solution variables:")
-    for i in range(n):
-        for j in range(n):
-            for v in range(n):
-                print("value : ", v)
+    for i in range(matrix_size):
+        for j in range(matrix_size):
+            for v in range(sequence_length):
+                # print("value : ", v)
                 # print("value", vpool.id((i, j, v + 1)), "=",
                 # sol[vpool.id((i, j, v + 1))])
                 if vpool.id((i, j, v)) in sol:
                     print(i, j, seq[v])
 
 
-def print_solution(seq,
-                   n,
-                   vpool,
-                   sol):  # affiche la solution
+def get_matrix_size(sequence_length):
+    matrix_size = int(sequence_length // 2)
+    if 0 < sequence_length % 2 or \
+            sequence_length == 2:
+        matrix_size += 1
+    return matrix_size
 
-    print_solution_variables(seq,
-                             n,
-                             vpool,
-                             sol)
-    print("matrix representation:")
-    for i in range(n):
-        for j in range(n):
+
+def get_matrix(sequence_length
+               , matrix_size
+               , vpool
+               , sol):
+    print("sequence_length", matrix_size)
+    matrix = numpy.matrix(numpy.zeros(shape=(matrix_size, matrix_size)))
+    # matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
+    # print("sequence_length", sequence_length)
+    for index_i in range(matrix_size):
+        for j in range(matrix_size):
+            # print("i", index_i)
+            # print("j", j)
+
             location_valued = False
-            for v in range(n):
-                if vpool.id((i, j, v)) in sol:
-                    # if vpool.id((i,j,v)) in sol.get_model():
-                    print(seq[v], end=" ")
+            for v in range(sequence_length):
+                # print("v: ", v)
+                # print("type(v): ", type(v))
+                if vpool.id((index_i, j, v)) in sol:
+                    print("v: ", v)
+                    print("type(v): ", type(v))
+                    matrix[index_i, j] = v
                     location_valued = True
             if not location_valued:
-                print("* ", end='')
-        print()
+                # print("Error: no value for location: ", index_i, j)
+                matrix[index_i, j] = None
+                # print(matrix)
+            # print(matrix)
+
+    return matrix
 
 
-def solve(seq,
-          bound
-          ):
-    # retourne un plongement de score au moins 'bound'
-    # si aucune solution n'existe, retourne None
+def get_value_matrix(matrix
+                     , seq
+                     , matrix_size):
+    print("get_value_matrix")
+    print("from matrix:")
+    print(matrix)
+    # value_matrix = [[0 for i in range(len(matrix))] for j in
+    #                 range(len(matrix))]
+    value_matrix = numpy.matrix(
+        numpy.zeros(shape=(matrix_size, matrix_size)))
 
-    # variables ##########################
-    vpool = IDPool(
-        start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
-    cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
+    for i in range(matrix_size):
+        for j in range(matrix_size):
+            # index = matrix[i][j]
+            index = matrix[i, j]
+            # print("index", index, "type : ", type(index))
+            # print("seq index", seq[index], "type : ", type(seq[index]))
 
-    n = len(seq)
-
-    # contraintes ##########################
-    cnf = set_clauses(seq,
-                      n,
-                      cnf,
-                      vpool)
-
-    solver = Glucose4(
-        use_timer=True)  # MiniSAT
-    # solver = Glucose4(use_timer=True)
-    solver.append_formula(cnf.clauses, no_return=False)
-
-    print("Resolution...")
-    resultat = solver.solve()
-    print("Satisfaisable : " + str(resultat))
-    print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
-    if resultat:
-        affichage_sol = True
-        if affichage_sol:
-            print("\nVoici une solution: \n")
-            interpretation = solver.get_model()  # extracting a
-            # satisfying assignment for CNF formula given to the solver
-            # A model is provided if a previous SAT call returned True.
-            # Otherwise, None is reported.
-            # Return type list(int) or None
-
-            if interpretation is not None:
-                print("Interpretation: ", interpretation)
-
-            # cette interpretation est longue,
-            # on va filtrer les valeurs positives
-            # (il y a en line_quantity fois moins)
-            filtered_interpretation = list(
-                filter(lambda x: x >= 0, interpretation))
-            print_solution(seq,
-                           n,
-                           vpool,
-                           filtered_interpretation
-                           # resultat
-                           )
-        return resultat
-    return None
+            # condition if index is numpy nan numpy.float64:
+            if numpy.isnan(index):
+                value_matrix[i, j] = None
+                # value_matrix[i][j] = 3
+            else:
+                index = int(index)
+                # print("index type : ", type(seq[index]))
+                value_matrix[i, j] = seq[index]
+    return value_matrix
 
 
-def exist_sol(seq,
-              bound):
-    # retourne True si et seulement si il
-    # existe un plongement de score au moins 'bound'
-    # A COMPLETER
-
-    # clauses = card(X, k)
-
-    if solve(seq,
-             bound,
-             ):
-        print("Il existe une solution")
-        return True
-    return False
-
-
-# vous pouvez utiliser les methodes de la classe pysat.card pour creer des contraintes de cardinalites (au moins k, au plus k,...)
+def get_representation(value_matrix
+                       , matrix_size):
+    representation = numpy.matrix(numpy.zeros(shape=(matrix_size,
+                                                     matrix_size)
+                                              , dtype=str))
+    for i in range(matrix_size):
+        for j in range(matrix_size):
+            current = value_matrix[i, j]
+            if numpy.isnan(current):
+                representation[i, j] = " "
+            else:
+                representation[i, j] = str(current)
+            # representation += str(value_matrix[i][j])
+    return representation
 
 
-def dichotomy(seq):
-    # retourne un plongement de score au moins 'lower_bound'
-    # si aucune solution n'existe, retourne None
-    # cette fonction utilise la methode de dichotomie pour trouver un plongement de score au moins 'lower_bound'
-    # A COMPLETER
-
-    return None
-
-
-def incremental_search(seq
-                       , lower_bound
-                       ):
-    # retourne un plongement de score au moins 'lower_bound'
-    # si aucune solution n'existe, retourne None
-    # cette fonction utilise une recherche incrémentale
-    # pour trouver un plongement de score au moins 'lower_bound'
-
-    bound = lower_bound
-    sol = exist_sol(seq
-                    , bound)
-    while sol:
-        sol = exist_sol(seq
-                        , bound)
-        # tant qu'il existe un plongement de score au moins 'bound'
-        bound += 1
-
-    if bound > lower_bound:
-        sol = solve(seq
-                    , bound - 1
-                    )
-        return sol
-
-    else:
-        print("Pas de solution")
-        return None
-
-
-def score(seq,
-          sol):
+def get_score(value_matrix
+              , matrix_size):
     # retourne le score d'un plongement
-
     # Le score d’un plongement P de p, noté score(p, P) est défini par
     # score(p, P) =
     # |{{i, j} | i, j ∈ Pos(p),
@@ -348,35 +513,212 @@ def score(seq,
     # paires de positions différentes i, j de p,
     # étiquetées par 1 dans p,
     # et qui se plongent vers des points voisins dans N²
-
+    print("get_score")
+    # score = lambda value_matrix, sequence_length: sum([value_matrix[i][j] == i + 1 for i in range(sequence_length) for j in range(sequence_length)])
     score = 0
-    for aa1_index in range(len(seq)):
-        for aa2_index in range(len(seq)):
-            if aa1_index != aa2_index and \
-                    seq[aa1_index] == 1 and \
-                    seq[aa2_index] == 1 and \
-                    sol[aa1_index][aa2_index] == 1:
-                score += 1
+    for i in range(matrix_size):
+        for j in range(matrix_size):
+            current = value_matrix[i, j]
+            # print(i, j, " is ", current)
+            # current type print
+            # print("current type : ", type(current))
+
+            if current == 1:
+                if i + 1 < matrix_size:
+                    if current == value_matrix[i + 1, j]:
+                        score += 1
+                        # print(i, j, current, "="
+                        #       , i + 1, j,
+                        #       value_matrix[i + 1, j])
+                        # print("score", score)
+                if j + 1 < matrix_size:
+                    if current == value_matrix[i, j + 1]:
+                        score += 1
+                        # print(i, j, current, "="
+                        #       , i, j + 1, value_matrix[i, j + 1])
+                        # print("score", score)
+            else:
+                # print(i, j, " is -1")
+                pass
     return score
 
 
-def compute_max_score(seq
-                      , method
-                      ):
+def print_solution_matrix(matrix
+                          , seq
+                          , mode="all"):
+    print("Solution value_matrix:")
+    for mode in ("index", "value"):
+        print("mode:%s" % mode)
+        for i in range(len(matrix)):
+            print()
+            for j in range(len(matrix)):
+                # if 0 <= matrix[i][j]:
+                if 0 <= matrix[i, j]:
+                    if mode == "index" \
+                            or mode == "all":
+                        print(matrix[i, j], end=" ")
+                        # print(matrix[i][j], end=" ")
+                    if mode == "value" or mode == "all":
+                        print(seq[matrix[i, j]], end=" ")
+                        # print(seq[matrix[i][j]], end=" ")
+                else:
+                    print("*", end=" ")
+        print()
+
+
+def solve(seq,
+          bound
+          , solver=Minisat22(use_timer=True)  # MiniSAT
+          # , solver=Glucose4(use_timer=True)  # MiniSAT
+
+          ):
+    # retourne un plongement de score au moins 'bound'
+    # si aucune solution sequence_length'existe, retourne None
+
+    # variables ##########################
+    vpool = IDPool(
+        start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
+    cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
+
+    sequence_length = len(seq)
+    print("sequence_length", sequence_length)
+
+    # contraintes ##########################
+    matrix_size = get_matrix_size(sequence_length)
+    print("matrix_size", matrix_size)
+    cnf = set_clauses(seq,
+                      sequence_length,
+                      cnf,
+                      vpool
+                      , bound
+                      , matrix_size
+                      )
+    txt = "clauses quantity:"
+    # print(f'{txt, cnf.nv:_>print_depth}')
+    print()
+
+    # solver = Glucose4(use_timer=True)
+    solver.append_formula(cnf.clauses, no_return=False)
+
+    print("Resolution...")
+    resultat = solver.solve()
+    print("seq ", seq)
+    print("bound ", bound)
+    print("Satisfaisable : " + str(resultat))
+    # if not resultat:
+    #     insatisfaisable.append
+    print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
+    if resultat:
+        interpretation = interpret(seq
+                                   , sequence_length
+                                   , vpool
+                                   , solver
+                                   , resultat
+                                   )
+        matrix = get_matrix(sequence_length
+                            , matrix_size
+                            , vpool
+                            , interpretation
+                            )
+        value_matrix = get_value_matrix(matrix
+                                        , seq
+                                        , matrix_size
+                                        )
+        affichage_sol = True
+        if affichage_sol:
+            print("\nVoici une solution: \n")
+
+            print(get_representation(value_matrix
+                                     , matrix_size
+                                     ))
+
+        score = get_score(value_matrix
+                          , matrix_size)
+        print("score:", score)
+        if score >= bound:
+            return value_matrix
+
+    return None
+
+
+def interpret(seq
+              , n
+              , vpool
+              , solver
+              , resultat
+              ):
+    interpretation = solver.get_model()  # extracting a
+    # satisfying assignment for CNF formula given to the solver
+    # A model is provided if a previous SAT call returned True.
+    # Otherwise, None is reported.
+    # Return type list(int) or None
+
+    return interpretation
+
+
+def exist_sol(seq, bound):
+    # retourne True si et seulement si il
+    # existe un plongement de score au moins 'bound'
+    # A COMPLETER
+    # clauses = card(X, k)
+    print()
+    print("exist_sol() ")
+    print("seq: ", seq)
+    # for aa in seq:
+    #     print("aa : ", aa, "aa type : ", type(aa))
+    print("bound: ", bound)
+
+    if solve(seq, bound) is not None:
+        print("Il existe une solution")
+        return True
+    return False
+
+
+# vous pouvez utiliser les methodes de la classe pysat.card pour
+# creer des contraintes de cardinalites (au moins k, au plus k,...)
+
+def dichotomy(seq):
+    # retourne un plongement de score au moins 'lower_bound' si
+    # aucune solution sequence_length'existe, retourne None cette fonction utilise
+    # la methode de dichotomie pour trouver un plongement de score au
+    # moins 'lower_bound' A COMPLETER
+    return None
+
+
+def incremental_search(seq, lower_bound):
+    # retourne un plongement de score au moins 'lower_bound'
+    # si aucune solution sequence_length'existe, retourne None
+    # cette fonction utilise une recherche incrémentale
+    # pour trouver un plongement de score au moins 'lower_bound'
+
+    bound = lower_bound
+    sol_exists = exist_sol(seq, bound)
+    while sol_exists:
+        sol_exists = exist_sol(seq, bound)
+        # tant qu'il existe un plongement de score au moins 'bound'
+        bound += 1
+
+    if bound > lower_bound:
+        sol = solve(seq
+                    , bound - 1
+                    )
+        return sol
+    else:
+        print("Pas de solution")
+        return None
+
+
+def compute_max_score(seq, method):
     # calcul le meilleur score pour la sequence seq,
     # il doit donc retourne un entier,
     # methode utilisee: dichotomie par defaut,
     #                   incrementale si l'option -i est active
     score_best = 0
-
     # si l'option -i est active, on utilise la recherche incrémentale
     if method == "incremental":
-        score_best = incremental_search(seq,
-                                        0
-                                        )
+        score_best = incremental_search(seq, 0)
     else:
         score_best = dichotomy(seq)
-
     return (score_best)
 
 
@@ -384,35 +726,46 @@ def compute_max_score(seq
 ########### CE CODE NE DOIT PAS ETRE MODIFIE #######################
 ####################################################################
 def test_code():
-    examples = [('00', 0),
-                ('1', 0),
-                ('01000', 0),
-                ('00110000', 1), ('11', 1), ('111', 2), ('1111', 4),
-                ('1111111', 8), ("111111111111111", 22),
-                ("1011011011", 7),
-                ("011010111110011", 12), ("01101011111000101", 11),
-                ("0110111001000101", 8),
-                ("000000000111000000110000000", 5), ('100010100', 0),
-                ('01101011111110111', 17), ('10', 0), ('10', 0),
-                ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
-                ('00111', 2), ('01001', 1),
-                ('111010', 3), ('110110', 3), ('0010110', 2),
-                ('0000001', 0), ('01101000', 2), ('10011111', 7),
-                ('011001101', 5), ('000110111', 5),
-                ('0011000010', 2), ('1000010100', 2),
-                ('11000111000', 5), ('01010101110', 4),
-                ('011001100010', 5), ('010011100010', 5),
-                ('1110000110011', 8), ('1000101110001', 4),
-                ('11010101011110', 10), ('01000101000101', 0),
-                ('111011100100000', 8),
-                ('000001100111010', 6), ('0110111110011000', 11),
-                ('0011110010110110', 11), ('01111100010010101', 11),
-                ('10011011011100101', 12),
-                ('101111101100101001', 13), ('110101011010101010', 9),
-                ('1111101010000111001', 14),
-                ('0111000101001000111', 11),
-                ('10111110100001010010', 12),
-                ('10110011010010001110', 11)]
+    satisfiability_success = []
+    satisfiability_echec = []
+    unsatisfiability_success = []
+    unsatisfiability_echec = []
+
+    examples = [
+        ('00', 0),
+        ('1', 0),
+        ('01000', 0),
+        ('00110000', 1),
+
+        ('11', 1),
+        ('111', 2),
+        ('1111', 4),
+        ('1111111', 8), ("111111111111111", 22),
+        ("1011011011", 7),
+        ("011010111110011", 13), ("01101011111000101", 11),
+        ("0110111001000101", 8),
+        ("000000000111000000110000000", 5), ('100010100', 0),
+        ('01101011111110111', 17), ('10', 0), ('10', 0),
+        ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
+        ('00111', 2), ('01001', 1),
+        ('111010', 3), ('110110', 3), ('0010110', 2),
+        ('0000001', 0), ('01101000', 2), ('10011111', 7),
+        ('011001101', 5), ('000110111', 5),
+        ('0011000010', 2), ('1000010100', 2),
+        ('11000111000', 5), ('01010101110', 4),
+        ('011001100010', 5), ('010011100010', 5),
+        ('1110000110011', 8), ('1000101110001', 4),
+        ('11010101011110', 10), ('01000101000101', 0),
+        ('111011100100000', 8),
+        ('000001100111010', 6), ('0110111110011000', 11),
+        ('0011110010110110', 11), ('01111100010010101', 11),
+        ('10011011011100101', 12),
+        ('101111101100101001', 13), ('110101011010101010', 9),
+        ('1111101010000111001', 14),
+        ('0111000101001000111', 11),
+        ('10111110100001010010', 12),
+        ('10110011010010001110', 11)
+    ]
     # chaque couple de cette liste est formee d'une sequence et de son meilleur score
 
     TIMEOUT = 10
@@ -442,13 +795,16 @@ def test_code():
         total_sat_tests += 1
         bound = int(maxbound / 2)
         print("sequence: " + seq + " borne: " + str(bound), end='')
+        exist_sol(seq, bound)
         try:
             if func_timeout.func_timeout(TIMEOUT, exist_sol,
                                          [seq, bound]):
                 sat_tests_success += 1
                 print(" ---> succes")
+                satisfiability_success.append(seq)
             else:
                 print(" ---> echec")
+                satisfiability_echec.append(seq)
         except func_timeout.FunctionTimedOut:
             timeouts_sat_tests += 1
             print(" ---> timeout")
@@ -456,7 +812,22 @@ def test_code():
             exceptions_sat_tests += 1
             print(" ---> exception levee")
 
-    # sur cet ensemble de tests, votre methode devrait toujours retourner qu'il n'existe pas de solution
+        print(
+            "satisfiability_success :"
+        )
+        for e in satisfiability_success:
+            print(e)
+            print()
+
+        print(
+            "satisfiability_echec :"
+        )
+        for e in satisfiability_echec:
+            print(e)
+            print()
+
+    # sur cet ensemble de tests, votre methode devrait toujours
+    # retourner qu'il sequence_length'existe pas de solution
     print("\n****** Test de d'insatisfiabilite ******\n")
     for (seq, maxbound) in examples:
         total_unsat_tests += 1
@@ -467,14 +838,30 @@ def test_code():
                                              [seq, bound]):
                 unsat_tests_success += 1
                 print(" ---> succes")
+                unsatisfiability_success.append(seq)
             else:
                 print(" ---> echec")
+                unsatisfiability_echec.append(seq)
+
         except func_timeout.FunctionTimedOut:
             timeouts_unsat_tests += 1
             print(" ---> timeout")
         except Exception as e:
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
+        print(
+            "unsatisfiability_success :"
+        )
+        for e in unsatisfiability_success:
+            print(e)
+            print()
+
+        print(
+            "unsatisfiability_echec :"
+        )
+        for e in unsatisfiability_echec:
+            print(e)
+            print()
 
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
@@ -527,47 +914,86 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
+if test:
+    print("Let's test your code")
+    test_code()
 
-# if test:
-#     print("Let's test your code")
-#     test_code()
-# elif options.bound != None:
-#     # cas ou la borne est fournie en entree:
-#     # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
-#     # si oui, on affiche "SAT".
-#     # Si l'option d'affichage est active,
-#     #   alors il faut egalement afficher une solution
-#     print("DEBUT DU TEST DE SATISFIABILITE")
-#     # A COMPLETER
+elif options.bound != None:
+    # cas ou la borne est fournie en entree:
+    # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
+    # si oui, on affiche "SAT".
+    # Si l'option d'affichage est active,
+    #   alors il faut egalement afficher une solution
+    print("DEBUT DU TEST DE SATISFIABILITE")
+    # A COMPLETER
+
+    if exist_sol(options.sequence, options.bound):
+        print("SAT")
+        if options.display:
+            pass
+            # print_solution()
+            # print_solution_matrix(
+            #     options.sequence,
+            #     options.bound
+            # )
+
+    print("FIN DU TEST DE SATISFIABILITE")
+
+elif not (incremental):
+    # on affiche le score maximal qu'on calcule par dichotomie
+    # si l'option d'affichage est active
+    #   on affiche egalement un plongement de score maximal
+    print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
+
+    # test_code()
+
+    if len(sys.argv) > 1:
+        print(
+            "Calcul du meilleur score pour la sequence " + options.sequence)
+        compute_max_score(options.sequence
+                          , method="dichotomy"
+                          )
+    print("FIN DU CALCUL DU MEILLEUR SCORE")
+
+elif not test:
+    # Pareil que dans le cas precedent mais avec la methode incrementale
+    # A COMPLETER
+    print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
+    # A COMPLETER
+    print("FIN DU CALCUL DU MEILLEUR SCORE")
+
+# sequence_length = 9
+# # matrixinit = numpy.matrix(numpy.zeros(shape=(9, 9), dtype=str))
+# matrixinit = numpy.matrix(numpy.zeros(shape=(9, 9)))
+# # matrixinit = numpy.matrix(numpy.zeros(shape=(len(options.sequence), len(options.sequence))))
+# print(matrixinit)
+# for i in range(sequence_length):
+#     for j in range(sequence_length):
+#         matrixinit[i, j] = i+j
+#         # matrixinit[i, j] = str(i+j)
 #
-#     if exist_sol(options.sequence, options.bound):
-#         print("SAT")
-#         if options.display:
-#             print_solution()
+# print(matrixinit)
 #
-#     print("FIN DU TEST DE SATISFIABILITE")
+# matrixi = numpy.matrix(numpy.zeros(shape=(9, 9)))
 #
-# elif not (incremental):
-#     # on affiche le score maximal qu'on calcule par dichotomie
-#     # si l'option d'affichage est active
-#     #   on affiche egalement un plongement de score maximal
-#     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
+# for i in range(sequence_length):
+#     matrixi[i, 0] = i
 #
-#     test_code()
-#
-#     if len(sys.argv) > 1:
-#         print("Calcul du meilleur score pour la sequence " + options.sequence)
-#         compute_max_score(options.sequence
-#                           , method="dichotomy"
-#                           )
-#     print("FIN DU CALCUL DU MEILLEUR SCORE")
-#
-# elif not test:
-#     # Pareil que dans le cas precedent mais avec la methode incrementale
-#     # A COMPLETER
-#     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
-#     # A COMPLETER
-#     print("FIN DU CALCUL DU MEILLEUR SCORE")
+# print(matrixi
+#       )
 
 
-exist_sol("01", 0)
+# print(int(1 / 2))
+# exist_sol('00', 0),
+# exist_sol('1', 0)
+# exist_sol('11', 0)
+# exist_sol('111', 0)
+# exist_sol('01000', 0)
+# exist_sol('00110000', 1)
+exist_sol('11', 1)
+#
+# exist_sol("01", 0)
+# exist_sol('00110000', int(1 / 2))
+# exist_sol("11", 0)
+
+exist_sol('10110011010010001110', 11)
