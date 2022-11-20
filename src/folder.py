@@ -140,18 +140,21 @@ verb = options.verbose
 incremental = options.incremental
 test = options.test
 
-
 ###############################################################################################
 
 # clauses = contraintes
 
 # sequence elements 2 by 2 are neighbors
-def sequence_neighboring_maintain(n, cnf, vpool):
+def sequence_neighboring_maintain(sequence_length
+                                  , cnf
+                                  , vpool
+                                  , matrix_size
+                                  ):
     print()
     print("sequence_neighboring_maintain")
     print("Les elements de la sequence sont voisins")
-    for i in range(n - 1):
-        cnf_set_neighbors(n,
+    for i in range(sequence_length - 1):
+        cnf_set_neighbors(matrix_size,
                           cnf,
                           vpool,
                           i,
@@ -171,20 +174,21 @@ def are_neighbors(i, j, k, l):
     return False
 
 
-def get_pair_potential_neighborings_disjunction(n
+def get_pair_potential_neighborings_disjunction(matrix_size
                                                 , vpool
                                                 , a
-                                                , b):
+                                                , b
+                                                ):
     print()
     print("get_pair_potential_neighborings_disjunction", a, b)
     potential_neighbors_disjunction = []
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
-    for i in range(n):
-        for j in range(n):
+    for i in range(matrix_size):
+        for j in range(matrix_size):
             d = [-vpool.id((i, j, a))]
-            for k in range(n):
-                for l in range(n):
+            for k in range(matrix_size):
+                for l in range(matrix_size):
                     # print("i = ", i
                     #       , "\nj = ", j
                     #       , "\nk = ", k
@@ -198,19 +202,20 @@ def get_pair_potential_neighborings_disjunction(n
     return potential_neighbors_disjunction
 
 
-def cnf_set_neighbors(n,
+def cnf_set_neighbors(matrix_size,
                       cnf,
                       vpool,
                       a,
-                      b):
+                      b
+                      ):
     # print("cnf_set_neighbors", a, b)
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
-    for i in range(n):
-        for j in range(n):
+    for i in range(matrix_size):
+        for j in range(matrix_size):
             d = [-vpool.id((i, j, a))]
-            for k in range(n):
-                for l in range(n):
+            for k in range(matrix_size):
+                for l in range(matrix_size):
                     # print("i = ", i
                     #       , "\nj = ", j
                     #       , "\nk = ", k
@@ -225,7 +230,9 @@ def cnf_set_neighbors(n,
 def get_potential_neighbors_pairs_disjunctions(seq
                                                , sequence_length
                                                , vpool
-                                               , value=1):
+                                               , matrix_size
+                                               , value=1
+                                               ):
     # retourne la liste des voisins potentiels
     # de la sequence seq
 
@@ -242,13 +249,11 @@ def get_potential_neighbors_pairs_disjunctions(seq
                 if index != index2:
                     potential_neighbors_pairs_disjunctions \
                         .append(
-                        get_pair_potential_neighborings_disjunction(sequence_length
-                                                                    ,
-                                                                    vpool
-                                                                    ,
-                                                                    index
-                                                                    ,
-                                                                    index2))
+                        get_pair_potential_neighborings_disjunction(
+                            matrix_size
+                            , vpool
+                            , index
+                            , index2))
         return potential_neighbors_pairs_disjunctions
     return None
 
@@ -275,48 +280,23 @@ def card(cnf
     # return AtLeast(X, k)
 
 
-# si X-x,y,i alors pas X-x,y,i'
-
-def max1value_per_location(n,
-                           cnf,
-                           vpool
-                           ):
-    print("max1value_per_location")
-    print("Au plus une valeur par case")
-    for i in range(n):
-        for j in range(n):  # parcours tableau
-            for index1 in range(n):
-                for index2 in range(n):
-                    if index1 != index2:
-                        cnf.append([-vpool.id((i, j, index1)),
-                                    -vpool.id((i, j, index2))])
-
-
 # pas sur de celle là
-def all_values_used(n, cnf, vpool):
+def all_values_used(sequence_length
+                    , cnf
+                    , vpool
+                    , matrix_size):
     print("all_values_used")
     print("All values in sequence must be in the answer")
-    for index in range(n):
+
+    for index in range(sequence_length):
         index_at_positions_disjunction = []
-        for i in range(n):
-            for j in range(n):
-                index_at_positions_disjunction.append(vpool.id((i
-                                                                , j
+        for y in range(matrix_size):
+            for x in range(matrix_size):
+                index_at_positions_disjunction.append(vpool.id((y
+                                                                , x
                                                                 ,
                                                                 index)))
         cnf.append(index_at_positions_disjunction)
-
-
-"""
-d'après pavage.py
-# tout tile doit apparaitre au moins une fois
-# for t in tile_list:         
-    # d = []
-    # for i in range(dim):
-        # for j in range(dim):
-            # d.append(vpool.id((i,j,t)))
-    # cnf.append(d)
-"""
 
 
 # si X-x,y,i alors pas X-x',y',i
@@ -339,19 +319,40 @@ def max1location_per_value(sequence_length
                                         -vpool.id((x2, y2, index))])
 
 
+# si X-x,y,i alors pas X-x,y,i'
+
+def max1value_per_location(sequence_length,
+                           cnf,
+                           vpool
+                           , matrix_size
+                           ):
+    print("max1value_per_location")
+    print("Au plus une valeur par case")
+    for i in range(matrix_size):
+        for j in range(matrix_size):  # parcours tableau
+            for index1 in range(sequence_length):
+                for index2 in range(sequence_length):
+                    if index1 != index2:
+                        cnf.append([-vpool.id((i, j, index1)),
+                                    -vpool.id((i, j, index2))])
+
+
 def set_min_cardinality(seq
-                        , n
+                        , sequence_length
                         , cnf
                         , vpool
                         , value
                         , bound
+                        , matrix_size
                         ):
     print("set_min_cardinality")
     potential_neighbors_pairs_disjunctions \
         = get_potential_neighbors_pairs_disjunctions(seq
-                                                     , n
+                                                     , sequence_length
                                                      , vpool
-                                                     , value)
+                                                     , matrix_size
+                                                     , value
+                                                     )
     if potential_neighbors_pairs_disjunctions is not None:
         #     for d in potential_neighbors_pairs_disjunctions:
         #         cnf.append(d)
@@ -371,30 +372,35 @@ def set_clauses(seq,
                 ):
     all_values_used(sequence_length
                     , cnf
-                    , vpool)
+                    , vpool
+                    , matrix_size)
 
     # sequence elements 2 by 2 are neighbors
     sequence_neighboring_maintain(sequence_length,
                                   cnf,
                                   vpool
+                                  , matrix_size
                                   )
+
     # au plus une valeur par case
     max1value_per_location(sequence_length
                            , cnf
-                           , vpool)
+                           , vpool
+                           , matrix_size)
     max1location_per_value(sequence_length
                            , cnf
                            , vpool
                            , matrix_size)
 
-    # set_min_cardinality(
-    #     seq
-    #     , sequence_length
-    #     , cnf
-    #     , vpool
-    #     , value=1
-    #     , bound=bound
-    # )
+    set_min_cardinality(
+        seq
+        , sequence_length
+        , cnf
+        , vpool
+        , value=1
+        , bound=bound
+        , matrix_size=matrix_size
+    )
 
     return cnf
 
@@ -514,7 +520,6 @@ def get_score(value_matrix
     # étiquetées par 1 dans p,
     # et qui se plongent vers des points voisins dans N²
     print("get_score")
-    # score = lambda value_matrix, sequence_length: sum([value_matrix[i][j] == i + 1 for i in range(sequence_length) for j in range(sequence_length)])
     score = 0
     for i in range(matrix_size):
         for j in range(matrix_size):
@@ -568,17 +573,34 @@ def print_solution_matrix(matrix
 
 def solve(seq,
           bound
-          , solver=Minisat22(use_timer=True)  # MiniSAT
-          # , solver=Glucose4(use_timer=True)  # MiniSAT
-
+          # , solver=Minisat22(use_timer=True)  # MiniSAT
+          # # , solver=Glucose4(use_timer=True)  # MiniSAT
           ):
     # retourne un plongement de score au moins 'bound'
     # si aucune solution sequence_length'existe, retourne None
 
+    solver=Minisat22(use_timer=True)  # MiniSAT
+
     # variables ##########################
     vpool = IDPool(
         start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
+    vpool.restart(start_from=1)
+
+    print("vpool", vpool)
+    print("vpool.id((0, 0, 0))", vpool.id((0, 0, 0)))
+    print("vpool.id((0, 0, 1))", vpool.id((0, 0, 1)))
+    print("vpool.id((0, 0, 2))", vpool.id((0, 0, 2)))
+    print("vpool.top", vpool.top)
+    print("vpool", vpool)
+    # print("vpool", vpool.nv)
+
     cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
+
+    txt = "emptiness test clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    test_resultat = solver.solve()
+    print("emptiness test Satisfaisable : " + str(test_resultat))
+
 
     sequence_length = len(seq)
     print("sequence_length", sequence_length)
@@ -594,7 +616,7 @@ def solve(seq,
                       , matrix_size
                       )
     txt = "clauses quantity:"
-    # print(f'{txt, cnf.nv:_>print_depth}')
+    print(f'{txt, cnf.nv}')
     print()
 
     # solver = Glucose4(use_timer=True)
@@ -961,39 +983,3 @@ elif not test:
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
     # A COMPLETER
     print("FIN DU CALCUL DU MEILLEUR SCORE")
-
-# sequence_length = 9
-# # matrixinit = numpy.matrix(numpy.zeros(shape=(9, 9), dtype=str))
-# matrixinit = numpy.matrix(numpy.zeros(shape=(9, 9)))
-# # matrixinit = numpy.matrix(numpy.zeros(shape=(len(options.sequence), len(options.sequence))))
-# print(matrixinit)
-# for i in range(sequence_length):
-#     for j in range(sequence_length):
-#         matrixinit[i, j] = i+j
-#         # matrixinit[i, j] = str(i+j)
-#
-# print(matrixinit)
-#
-# matrixi = numpy.matrix(numpy.zeros(shape=(9, 9)))
-#
-# for i in range(sequence_length):
-#     matrixi[i, 0] = i
-#
-# print(matrixi
-#       )
-
-
-# print(int(1 / 2))
-# exist_sol('00', 0),
-# exist_sol('1', 0)
-# exist_sol('11', 0)
-# exist_sol('111', 0)
-# exist_sol('01000', 0)
-# exist_sol('00110000', 1)
-exist_sol('11', 1)
-#
-# exist_sol("01", 0)
-# exist_sol('00110000', int(1 / 2))
-# exist_sol("11", 0)
-
-exist_sol('10110011010010001110', 11)
