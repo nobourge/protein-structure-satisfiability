@@ -110,11 +110,11 @@ sys.stdout = AutoIndent(sys.stdout)
 # test suivant
 
 parser = OptionParser()
-parser.add_option("-s", "--sequence", dest="seq", action="store",
+parser.add_option("-s", "--sequence", dest="sequence", action="store",
                   help="specify the input sequence")
 parser.add_option("-b", "--bound", dest="bound", action="store",
                   help="specify a lower bound on the score", type="int")
-parser.add_option("-p", "--print", dest="affichage_sol",
+parser.add_option("-p", "--print", dest="display",
                   action="store_true",
                   help="print solution", default=False)
 parser.add_option("-i", "--incremental", dest="incremental",
@@ -129,7 +129,7 @@ parser.add_option("-t", "--test", dest="test", action="store_true",
 
 (options, args) = parser.parse_args()
 
-affichage_sol = options.affichage_sol
+affichage_sol = options.display
 verb = options.verbose
 incremental = options.incremental
 test = options.test
@@ -379,7 +379,7 @@ def print_solution_variables(seq,
                              n,
                              vpool,
                              sol):
-    #return
+    return
     print("Solution variables:")
     for i in range(n):
         for j in range(n):
@@ -505,7 +505,7 @@ def print_solution_matrix(matrix
                         print(matrix[i, j], end=" ")
                         # print(matrix[i][j], end=" ")
                     if mode == "value" or mode == "all":
-                        print(seq[matrix[i, j]], end=" ")
+                        print(seq[int(matrix[i, j])], end=" ")
                         # print(seq[matrix[i][j]], end=" ")
                 else:
                     print("*", end=" ")
@@ -647,7 +647,7 @@ def dichotomy(seq, lower_bound):
         if exist_sol(seq, mid_bound):
             lower_bound = mid_bound
         else: high_bound = mid_bound
-    return solve(seq, lower_bound)
+    return lower_bound-1
 
     # 1 2 3 4 5
     # l   m   h
@@ -664,7 +664,7 @@ def incremental_search(seq, lower_bound):
     if not exist_sol(seq, lower_bound): return None
     lower_bound += 1
     while exist_sol(seq, lower_bound): lower_bound += 1
-    return solve(seq, lower_bound-1)
+    return lower_bound-1
 
 def score(seq, sol):
     # retourne le score d'un plongement
@@ -689,16 +689,19 @@ def score(seq, sol):
     return score
 
 
-def compute_max_score(seq, method):
+def compute_max_score(seq, method, display):
     # calcul le meilleur score pour la sequence seq,
     # il doit donc retourne un entier,
     # methode utilisee: dichotomie par defaut,
-    #                   incrementale si l'option -i est active
-    score_best = 0
     # si l'option -i est active, on utilise la recherche incrémentale
     if method == "incremental":
         score_best = incremental_search(seq, 0)
     else: score_best = dichotomy(seq, 0)
+
+    if display and score_best is not None:
+        #print("##############################################",solve(seq, score_best))
+        res = solve(seq, score_best)
+        print_solution_matrix(res, seq)
     return score_best
 
 
@@ -898,48 +901,36 @@ if test:
     print("Let's test your code")
     test_code()
 
-elif options.bound != None:
+elif options.bound is not None:
     # cas ou la borne est fournie en entree:
     # on test si la sequence (qui doit etre donnee en entree) a un score superieur ou egal a la borne donnee
     # si oui, on affiche "SAT".
     # Si l'option d'affichage est active,
     #   alors il faut egalement afficher une solution
     print("DEBUT DU TEST DE SATISFIABILITE")
-    # A COMPLETER
-
-    if exist_sol(options.sequence, options.bound):
+    sol = solve(options.sequence, options.bound)
+    if sol is not None:
         print("SAT")
-        if options.display:
-            pass
-            # print_solution()
-            # print_solution_matrix(
-            #     options.sequence,
-            #     options.bound
-            # )
+        if options.display: print_solution_matrix(sol, options.sequence)
 
     print("FIN DU TEST DE SATISFIABILITE")
 
-elif not (incremental):
+elif not incremental:
     # on affiche le score maximal qu'on calcule par dichotomie
     # si l'option d'affichage est active
     #   on affiche egalement un plongement de score maximal
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
-
-    # test_code()
-
     if len(sys.argv) > 1:
-        print(
-            "Calcul du meilleur score pour la sequence " + options.sequence)
-        compute_max_score(options.sequence
-                          , method="dichotomy"
-                          )
+        print("Calcul du meilleur score pour la sequence " + options.sequence)
+        compute_max_score(options.sequence, "dichotomy", options.display)
     print("FIN DU CALCUL DU MEILLEUR SCORE")
 
 elif not test:
     # Pareil que dans le cas precedent mais avec la methode incrementale
-    # A COMPLETER
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
-    # A COMPLETER
+    if len(sys.argv) > 1:
+        print("Calcul du meilleur score pour la sequence " + options.sequence)
+        compute_max_score(options.sequence, "incremental", options.display)
     print("FIN DU CALCUL DU MEILLEUR SCORE")
 
 # n = 9
@@ -970,10 +961,10 @@ elif not test:
 # exist_sol('111', 0)
 # exist_sol('01000', 0)
 # exist_sol('00110000', 1)
-exist_sol('11', 1)
+#exist_sol('11', 1)
 #
 # exist_sol("01", 0)
 # exist_sol('00110000', int(1 / 2))
 # exist_sol("11", 0)
 
-exist_sol('10110011010010001110', 11)
+#exist_sol('10110011010010001110', 11)
