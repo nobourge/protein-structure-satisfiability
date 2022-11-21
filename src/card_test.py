@@ -28,6 +28,7 @@ from folder import *
 
 # exist_sol('00', 0),
 # exist_sol('1', 0)
+print("sequence ", '11', "bound", 0, "call to exist_sol" )
 exist_sol('11', 0)
 exist_sol('111', 0)
 # exist_sol('1111', 0)
