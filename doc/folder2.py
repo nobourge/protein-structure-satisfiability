@@ -38,7 +38,7 @@ import multiprocessing
 parser = OptionParser()
 parser.add_option("-s", "--sequence", dest="seq", action="store", 
                   help="specify the input sequence")
-parser.add_option("-b", "--bound", dest="bound", action="store", 
+parser.add_option("-b", "--bound", dest="bound", action="store",
                   help="specify a lower bound on the score", type="int")
 parser.add_option("-p", "--print", dest="affichage_sol", action="store_true", 
                   help="print solution",default=False)

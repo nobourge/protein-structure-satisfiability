@@ -218,4 +218,3 @@ if affichage_sol_graphics and sat:
             input("Appuyer sur Enter pour avoir une autre solution")
         else:
             print("UNSAT")
-
