@@ -32,7 +32,7 @@ for index_i in range(n):
             # print(matrix)
         print(matrix)
 
-# def get_matrix(sequence_length, vpool, sol):
+# def get_index_matrix(sequence_length, vpool, sol):
 #     matrix = numpy.matrix(numpy.zeros(shape=(sequence_length, sequence_length)))
 #     # matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
 #     print("sequence_length", sequence_length)
