@@ -17,7 +17,6 @@ import func_timeout
 from auto_indent import *
 from colorama import Fore, Style
 
-
 sys.stdout = AutoIndent(sys.stdout)
 
 # OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE
@@ -302,8 +301,8 @@ def card(cnf
     # , X, k)
 
     # for lit in X:
-        # print("lit = ", lit)
-        # print("vpool.id(lit) = ", vpool.id(lit))
+    # print("lit = ", lit)
+    # print("vpool.id(lit) = ", vpool.id(lit))
     cnf = cnf.extend(CardEnc.atleast(lits=X
                                      , bound=k
                                      , vpool=vpool
@@ -388,11 +387,12 @@ def set_min_cardinality(seq
                                                                 , value
                                                                 )
     if pairs_potential_neighborings_disjunctions_symbols is not None:
-        card(cnf
-             , vpool
-             , pairs_potential_neighborings_disjunctions_symbols
-             , bound
-             )
+        if 1 < len(pairs_potential_neighborings_disjunctions_symbols):
+            cnf = card(cnf
+                       , vpool
+                       , pairs_potential_neighborings_disjunctions_symbols
+                       , bound
+                       )
     else:
         print("No potential neighborings")
 
@@ -525,16 +525,17 @@ def get_value_matrix(matrix
                 value_matrix[i, j] = seq[index]
     return value_matrix
 
-def get_color_coded_str(i) :
-    return "\033[3{}m{}\033[0m".format(i+1, i)
+
+def get_color_coded_str(i):
+    return "\033[3{}m{}\033[0m".format(i + 1, i)
 
 
 def get_representation(value_matrix
-                       , matrix_size):
+                       ):
+    matrix_size = len(value_matrix)
     representation = numpy.matrix(numpy.zeros(shape=(matrix_size,
                                                      matrix_size)
                                               , dtype=str))
-
 
     for i in range(matrix_size):
         for j in range(matrix_size):
@@ -626,7 +627,6 @@ def solve(seq,
     # retourne un plongement de score au moins 'bound'
     # si aucune solution n'existe, retourne None
 
-
     sequence_length = len(seq)
     print("sequence_length", sequence_length)
 
@@ -689,7 +689,7 @@ def solve(seq,
             print("\nVoici une solution: \n")
 
             print(get_representation(value_matrix
-                                     , matrix_size))
+                                     ))
         new_score = get_score(value_matrix)
         print("score:", new_score)
         if new_score >= bound:
@@ -776,7 +776,11 @@ def dichotomy(seq
             high_bound = mid_bound
             print("high_bound", high_bound)
 
-    return solve(seq, lower_bound - 1)
+    sol = solve(seq, lower_bound - 1)
+    if sol is not None:
+        print("dichotomy() sol is not None")
+
+    return sol
 
     # 1 2 3 4 5
     # l   m   h
@@ -786,7 +790,8 @@ def dichotomy(seq
     # l h
 
 
-def incremental_search(seq, lower_bound):
+def incremental_search(seq
+                       , lower_bound=0):
     # retourne un plongement de score au moins 'lower_bound'
     # si aucune solution matrix_size'existe, retourne None
     # cette fonction utilise une recherche incrémentale
@@ -796,8 +801,11 @@ def incremental_search(seq, lower_bound):
     lower_bound += 1
     while exist_sol(seq, lower_bound):
         lower_bound += 1
-    return lower_bound - 1
+    sol = solve(seq, lower_bound - 1)
+    if sol is not None:
+        print("incremental_search() sol is not None")
 
+    return sol
 
 def compute_max_score(seq
                       , method="dichotomy"
@@ -813,15 +821,18 @@ def compute_max_score(seq
     print("display: ", display)
 
     if method == "incremental":
-        score_best = get_score(incremental_search(seq, 0))
+        sol = incremental_search(seq)
     else:
-        score_best = get_score(dichotomy(seq, 0))
+        sol = dichotomy(seq)
+    if sol is None:
+        return 0
+    score_best = get_score(sol)
 
     if display and score_best is not None:
         # print("##############################################",solve(seq, score_best))
-        sol = solve(seq, score_best)
+        # sol = solve(seq, score_best)
         # print_solution_matrix(sol, seq)
-        print(get_representation(sol, len(seq)))
+        print(get_representation(sol))
 
     print("score_best: ", score_best)
     return score_best
@@ -831,9 +842,7 @@ def compute_max_score(seq
 ########### CE CODE NE DOIT PAS ETRE MODIFIE #######################
 ####################################################################
 def test_code():
-    # satisfiability_success = []
     satisfiability_echec = []
-    # unsatisfiability_success = []
     unsatisfiability_echec = []
 
     examples = [
@@ -917,20 +926,6 @@ def test_code():
             exceptions_sat_tests += 1
             print(" ---> exception levee")
 
-        print(
-            "satisfiability_success :"
-        )
-        # for e in satisfiability_success:
-        #     print(e)
-        #     print()
-
-        print(
-            "satisfiability_echec :"
-        )
-        for e in satisfiability_echec:
-            print(e)
-            print()
-
     # sur cet ensemble de tests, votre methode devrait toujours
     # retourner qu'il matrix_size'existe pas de solution
     print("\n****** Test de d'insatisfiabilite ******\n")
@@ -954,19 +949,6 @@ def test_code():
         except Exception as e:
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
-        print(
-            "unsatisfiability_success :"
-        )
-        # for e in unsatisfiability_success:
-        #     print(e)
-        #     print()
-
-        print(
-            "unsatisfiability_echec :"
-        )
-        for e in unsatisfiability_echec:
-            print(e)
-            print()
 
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
@@ -1000,11 +982,25 @@ def test_code():
     print("Nombre de timeouts: " + str(timeouts_sat_tests))
     print("Nombre d'exceptions: " + str(exceptions_sat_tests) + "\n")
 
+    print(
+        "satisfiability_echec :"
+    )
+    for e in satisfiability_echec:
+        print(e)
+        print()
+
     print("Instances sans solution correctement repondues: " + str(
         unsat_tests_success) + " sur " + str(
         total_unsat_tests) + " tests realises")
     print("Nombre de timeouts: " + str(timeouts_unsat_tests))
     print("Nombre d'exceptions: " + str(exceptions_unsat_tests) + "\n")
+
+    print(
+        "unsatisfiability_echec :"
+    )
+    for e in unsatisfiability_echec:
+        print(e)
+        print()
 
     print("Meilleurs scores correctement calcules: " + str(
         correct_maxscores) + " sur " + str(
@@ -1019,9 +1015,21 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
-# test_code()
+# exist_sol("00110000",1)
+# compute_max_score("00110000")
+# compute_max_score("000000000111000000110000000")
+# compute_max_score("100010100")
+# compute_max_score("000110111")
+# compute_max_score("0011000010")
+# compute_max_score("111011100100000")
+# compute_max_score("0110111110011000")
+# compute_max_score("0011110010110110")
+#
+# compute_max_score("10110011010010001110")
+test_code()
 # dichotomy("011001101")
-compute_max_score("011001101")
+# compute_max_score("011001101")
+
 if test:
     print("Let's test your code")
     test_code()
