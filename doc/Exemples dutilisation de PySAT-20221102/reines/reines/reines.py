@@ -25,6 +25,11 @@ print("Construction des clauses\n")
 
 print("Au moins un reine par ligne")
 
+
+txt = "clauses quantity:"
+print(f'{txt, cnf.nv}')
+print()
+
 # au moins un reine par ligne
 for i in range(nb):
     d = []
@@ -32,6 +37,9 @@ for i in range(nb):
         d.append(vpool.id((i,j)))
     cnf.append(d)
 
+txt = "clauses quantity:"
+print(f'{txt, cnf.nv}')
+print()
 
 # pas d'attaque en ligne
 print("Pas d'attaque en ligne")
@@ -42,7 +50,11 @@ for i in range(nb):
             if k > j:
                 cnf.append([-vpool.id((i,j)),-vpool.id((i,k))])
 print("done")
-                
+
+txt = "clauses quantity:"
+print(f'{txt, cnf.nv}')
+print()
+
 # pas d'attaque en colonne
 print("Pas d'attaque en colonne")
 
@@ -53,6 +65,9 @@ for i in range(nb):
                 cnf.append([-vpool.id((j,i)),-vpool.id((k,i))])
 print("done")
            
+txt = "clauses quantity:"
+print(f'{txt, cnf.nv}')
+print()
 
 # pas d'attaque en diagonale 
 
@@ -66,7 +81,11 @@ print("Pas d'attaque en diagnale")
                 # if abs(i-k)==abs(j-l) and i!=k:
                     # cnf.append([-vpool.id((i,j)),-vpool.id((k,l))])
 # print("done")
-           
+
+txt = "clauses quantity:"
+print(f'{txt, cnf.nv}')
+print()
+
 # version optimisee
 for i in range(nb):
     for j in range(nb):
@@ -166,4 +185,3 @@ if resultat:
                 else:
                     print("* ",end='')
             print("")
-

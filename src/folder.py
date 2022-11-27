@@ -207,6 +207,11 @@ def sequence_neighboring_maintain(sequence_length
                                   ):
     print()
     print("sequence_neighboring_maintain")
+
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
+
     for i in range(sequence_length - 1):
         cnf = set_neighbors(matrix_size,
                             vpool,
@@ -214,6 +219,12 @@ def sequence_neighboring_maintain(sequence_length
                             i + 1
                             , to_append=cnf
                             )
+
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
+
+    return cnf
 
 
 def are_neighbors(i, j, k, m):
@@ -333,6 +344,10 @@ def all_values_used(sequence_length
 
     print("all_values_used()")
 
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
+
     for index in range(sequence_length):
         index_at_positions_disjunction = []
         for y in range(matrix_size):
@@ -342,6 +357,12 @@ def all_values_used(sequence_length
                                                                 ,
                                                                 index)))
         cnf.append(index_at_positions_disjunction)
+
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
+
+    return cnf
 
 
 # si X_{x,y,i} alors non X_{x',y',i}
@@ -372,6 +393,11 @@ def max1value_per_location(sequence_length,
                            , matrix_size
                            ):
     print("max1value_per_location")
+
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
+
     for i in range(matrix_size):
         for j in range(matrix_size):  # parcours tableau
             for index1 in range(sequence_length):
@@ -379,6 +405,13 @@ def max1value_per_location(sequence_length,
                     if index1 != index2:
                         cnf.append([-vpool.id((i, j, index1)),
                                     -vpool.id((i, j, index2))])
+
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
+
+    return cnf
+
 
 
 def set_min_cardinality(seq
@@ -1049,6 +1082,9 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
+exist_sol("00", 0)
+exist_sol('1', 0)
+exist_sol('01000', 0)
 exist_sol("00111", 1)
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
