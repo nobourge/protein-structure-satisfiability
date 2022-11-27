@@ -1,0 +1,532 @@
+Bonjour,
+Un message pour vous dire trois choses:
+- une erreur s'est glissée dans le programme de test pour la 11ème séquence testée (011010111110011). Le score maximal qu'on peut obtenir est 13 et non 12 comme indiqué dans la liste "examples" de la méthode test_code(). Par conséquent, il y a de erreurs rapportées pour cette séquence qui n'en sont pas. Vous pouvez directement remplacer la paire  ("011010111110011", 12) par  ("011010111110011", 13) dans cette liste pour résoudre ce problème.
+- si vous appelez la fonction card.atleast(...) sans lui indiquer l'argument optionnel vpool, l'appel va utiliser son propre mécanisme de création de variables sans savoir que certaines sont déjà utilisées, ce qui peut créer des erreurs. Il est donc important de lui passer en argument l'objet vpool que vous avez utilisé pour créer vos variables (cf mon mail précédent "contraintes de cardinalité" pour un exemple)
+
+- certains étudiants étaient intéressés par connaître le nombre de clauses que j'obtiens dans mon implémentation. Dans ma modélisation, la dimension de la grille 2D que je prends a une influence sur le nombre de variables et de clauses. Je vous donne d'abord le nombre de clauses que j'obtiens pour la dimension que j'ai prise (et que je garde pour moi), et ensuite en prenant une dimension nxn où n est la longueur de la séquence. Les résultats que je donne sont avec le test où je n'ai pas modifié la 11ème séquence, et donc une erreur est rapportée. 
+
+****** Test de satisfiabilite ******
+
+sequence: 00 borne: 0nombre de clauses : 38
+ ---> succes
+sequence: 1 borne: 0nombre de clauses : 3
+ ---> succes
+sequence: 01000 borne: 0nombre de clauses : 365
+ ---> succes
+sequence: 00110000 borne: 0nombre de clauses : 3478
+ ---> succes
+sequence: 11 borne: 0nombre de clauses : 46
+ ---> succes
+sequence: 111 borne: 1nombre de clauses : 70
+ ---> succes
+sequence: 1111 borne: 2nombre de clauses : 342
+ ---> succes
+sequence: 1111111 borne: 4nombre de clauses : 1623
+ ---> succes
+sequence: 111111111111111 borne: 11nombre de clauses : 41363
+ ---> succes
+sequence: 1011011011 borne: 3nombre de clauses : 9010
+ ---> succes
+sequence: 011010111110011 borne: 6nombre de clauses : 40083
+ ---> succes
+sequence: 01101011111000101 borne: 5nombre de clauses : 69988
+ ---> succes
+sequence: 0110111001000101 borne: 4nombre de clauses : 64936
+ ---> succes
+sequence: 000000000111000000110000000 borne: 2nombre de clauses : 593245
+ ---> succes
+sequence: 100010100 borne: 0nombre de clauses : 4029
+ ---> succes
+sequence: 01101011111110111 borne: 8nombre de clauses : 71023
+ ---> succes
+sequence: 10 borne: 0nombre de clauses : 42
+ ---> succes
+sequence: 10 borne: 0nombre de clauses : 42
+ ---> succes
+sequence: 001 borne: 0nombre de clauses : 61
+ ---> succes
+sequence: 000 borne: 0nombre de clauses : 57
+ ---> succes
+sequence: 1001 borne: 0nombre de clauses : 292
+ ---> succes
+sequence: 1111 borne: 2nombre de clauses : 342
+ ---> succes
+sequence: 00111 borne: 1nombre de clauses : 384
+ ---> succes
+sequence: 01001 borne: 0nombre de clauses : 374
+ ---> succes
+sequence: 111010 borne: 1nombre de clauses : 1199
+ ---> succes
+sequence: 110110 borne: 1nombre de clauses : 1199
+ ---> succes
+sequence: 0010110 borne: 1nombre de clauses : 1416
+ ---> succes
+sequence: 0000001 borne: 0nombre de clauses : 1383
+ ---> succes
+sequence: 01101000 borne: 1nombre de clauses : 3504
+ ---> succes
+sequence: 10011111 borne: 3nombre de clauses : 3766
+ ---> succes
+sequence: 011001101 borne: 2nombre de clauses : 4195
+ ---> succes
+sequence: 000110111 borne: 2nombre de clauses : 4195
+ ---> succes
+sequence: 0011000010 borne: 1nombre de clauses : 8579
+ ---> succes
+sequence: 1000010100 borne: 1nombre de clauses : 8579
+ ---> succes
+sequence: 11000111000 borne: 2nombre de clauses : 9853
+ ---> succes
+sequence: 01010101110 borne: 2nombre de clauses : 9889
+ ---> succes
+sequence: 011001100010 borne: 2nombre de clauses : 18691
+ ---> succes
+sequence: 010011100010 borne: 2nombre de clauses : 18691
+ ---> succes
+sequence: 1110000110011 borne: 4nombre de clauses : 20919
+ ---> succes
+sequence: 1000101110001 borne: 2nombre de clauses : 20554
+ ---> succes
+sequence: 11010101011110 borne: 5nombre de clauses : 36838
+ ---> succes
+sequence: 01000101000101 borne: 0nombre de clauses : 35614
+ ---> succes
+sequence: 111011100100000 borne: 4nombre de clauses : 39479
+ ---> succes
+sequence: 000001100111010 borne: 3nombre de clauses : 39203
+ ---> succes
+sequence: 0110111110011000 borne: 5nombre de clauses : 65289
+ ---> succes
+sequence: 0011110010110110 borne: 5nombre de clauses : 65289
+ ---> succes
+sequence: 01111100010010101 borne: 5nombre de clauses : 69907
+ ---> succes
+sequence: 10011011011100101 borne: 6nombre de clauses : 70256
+ ---> succes
+sequence: 101111101100101001 borne: 6nombre de clauses : 109778
+ ---> succes
+sequence: 110101011010101010 borne: 4nombre de clauses : 108994
+ ---> succes
+sequence: 1111101010000111001 borne: 7nombre de clauses : 116965
+ ---> succes
+sequence: 0111000101001000111 borne: 5nombre de clauses : 116089
+ ---> succes
+sequence: 10111110100001010010 borne: 6nombre de clauses : 174860
+ ---> succes
+sequence: 10110011010010001110 borne: 5nombre de clauses : 174440
+ ---> succes
+
+****** Test de d'insatisfiabilite ******
+
+sequence: 00 borne: 1nombre de clauses : 39
+ ---> succes
+sequence: 1 borne: 1nombre de clauses : 2
+ ---> succes
+sequence: 01000 borne: 1nombre de clauses : 366
+ ---> succes
+sequence: 00110000 borne: 2nombre de clauses : 3594
+ ---> succes
+sequence: 11 borne: 2nombre de clauses : 54
+ ---> succes
+sequence: 111 borne: 3nombre de clauses : 77
+ ---> succes
+sequence: 1111 borne: 5nombre de clauses : 378
+ ---> succes
+sequence: 1111111 borne: 9nombre de clauses : 1743
+ ---> succes
+sequence: 111111111111111 borne: 23nombre de clauses : 43259
+ ---> timeout
+sequence: 1011011011 borne: 8nombre de clauses : 9510
+ ---> succes
+sequence: 011010111110011 borne: 13nombre de clauses : 41399
+ ---> echec
+sequence: 01101011111000101 borne: 12nombre de clauses : 71780
+ ---> timeout
+sequence: 0110111001000101 borne: 9nombre de clauses : 66256
+ ---> timeout
+sequence: 000000000111000000110000000 borne: 6nombre de clauses : 596101
+ ---> timeout
+sequence: 100010100 borne: 1nombre de clauses : 4030
+ ---> succes
+sequence: 01101011111110111 borne: 18nombre de clauses : 73403
+ ---> timeout
+sequence: 10 borne: 1nombre de clauses : 43
+ ---> succes
+sequence: 10 borne: 1nombre de clauses : 43
+ ---> succes
+sequence: 001 borne: 1nombre de clauses : 62
+ ---> succes
+sequence: 000 borne: 1nombre de clauses : 58
+ ---> succes
+sequence: 1001 borne: 2nombre de clauses : 324
+ ---> succes
+sequence: 1111 borne: 5nombre de clauses : 378
+ ---> succes
+sequence: 00111 borne: 3nombre de clauses : 431
+ ---> succes
+sequence: 01001 borne: 2nombre de clauses : 406
+ ---> succes
+sequence: 111010 borne: 4nombre de clauses : 1342
+ ---> succes
+sequence: 110110 borne: 4nombre de clauses : 1342
+ ---> succes
+sequence: 0010110 borne: 3nombre de clauses : 1523
+ ---> succes
+sequence: 0000001 borne: 1nombre de clauses : 1384
+ ---> succes
+sequence: 01101000 borne: 3nombre de clauses : 3691
+ ---> succes
+sequence: 10011111 borne: 8nombre de clauses : 4066
+ ---> succes
+sequence: 011001101 borne: 6nombre de clauses : 4459
+ ---> succes
+sequence: 000110111 borne: 6nombre de clauses : 4459
+ ---> succes
+sequence: 0011000010 borne: 3nombre de clauses : 8866
+ ---> succes
+sequence: 1000010100 borne: 3nombre de clauses : 8866
+ ---> succes
+sequence: 11000111000 borne: 6nombre de clauses : 10277
+ ---> succes
+sequence: 01010101110 borne: 5nombre de clauses : 10213
+ ---> succes
+sequence: 011001100010 borne: 6nombre de clauses : 19307
+ ---> succes
+sequence: 010011100010 borne: 6nombre de clauses : 19307
+ ---> succes
+sequence: 1110000110011 borne: 9nombre de clauses : 21639
+ ---> timeout
+sequence: 1000101110001 borne: 5nombre de clauses : 21022
+ ---> succes
+sequence: 11010101011110 borne: 11nombre de clauses : 38002
+ ---> timeout
+sequence: 01000101000101 borne: 1nombre de clauses : 35615
+ ---> succes
+sequence: 111011100100000 borne: 9nombre de clauses : 40479
+ ---> timeout
+sequence: 000001100111010 borne: 7nombre de clauses : 40027
+ ---> succes
+sequence: 0110111110011000 borne: 12nombre de clauses : 67081
+ ---> timeout
+sequence: 0011110010110110 borne: 12nombre de clauses : 67081
+ ---> timeout
+sequence: 01111100010010101 borne: 12nombre de clauses : 71699
+ ---> timeout
+sequence: 10011011011100101 borne: 13nombre de clauses : 72020
+ ---> timeout
+sequence: 101111101100101001 borne: 14nombre de clauses : 112354
+ ---> timeout
+sequence: 110101011010101010 borne: 10nombre de clauses : 110998
+ ---> timeout
+sequence: 1111101010000111001 borne: 15nombre de clauses : 119509
+ ---> timeout
+sequence: 0111000101001000111 borne: 12nombre de clauses : 118385
+ ---> timeout
+sequence: 10111110100001010010 borne: 13nombre de clauses : 177688
+ ---> timeout
+sequence: 10110011010010001110 borne: 12nombre de clauses : 177296
+ ---> timeout
+
+
+Si on prend une dimension de grille égale à la longueur de la séquence, voici ce que j'obtiens:
+
+
+****** Test de satisfiabilite ******
+
+sequence: 00 borne: 0nombre de clauses : 38
+ ---> succes
+sequence: 1 borne: 0nombre de clauses : 3
+ ---> succes
+sequence: 01000 borne: 0nombre de clauses : 2025
+ ---> succes
+sequence: 00110000 borne: 0nombre de clauses : 18904
+ ---> succes
+sequence: 11 borne: 0nombre de clauses : 46
+ ---> succes
+sequence: 111 borne: 1nombre de clauses : 229
+ ---> succes
+sequence: 1111 borne: 2nombre de clauses : 848
+ ---> succes
+sequence: 1111111 borne: 4nombre de clauses : 10770
+ ---> succes
+sequence: 111111111111111 borne: 11nombre de clauses : 418250
+ ---> succes
+sequence: 1011011011 borne: 3nombre de clauses : 57138
+ ---> succes
+sequence: 011010111110011 borne: 6nombre de clauses : 413085
+ ---> succes
+sequence: 01101011111000101 borne: 5nombre de clauses : 761084
+ ---> succes
+sequence: 0110111001000101 borne: 4nombre de clauses : 563896
+ ---> succes
+sequence: 000000000111000000110000000 borne: 2 ---> timeout
+sequence: 100010100 borne: 0nombre de clauses : 33489
+ ---> succes
+sequence: 01101011111110111 borne: 8nombre de clauses : 765143
+ ---> succes
+sequence: 10 borne: 0nombre de clauses : 42
+ ---> succes
+sequence: 10 borne: 0nombre de clauses : 42
+ ---> succes
+sequence: 001 borne: 0nombre de clauses : 210
+ ---> succes
+sequence: 000 borne: 0nombre de clauses : 201
+ ---> succes
+sequence: 1001 borne: 0nombre de clauses : 748
+ ---> succes
+sequence: 1111 borne: 2nombre de clauses : 848
+ ---> succes
+sequence: 00111 borne: 1nombre de clauses : 2076
+ ---> succes
+sequence: 01001 borne: 0nombre de clauses : 2050
+ ---> succes
+sequence: 111010 borne: 1nombre de clauses : 4867
+ ---> succes
+sequence: 110110 borne: 1nombre de clauses : 4867
+ ---> succes
+sequence: 0010110 borne: 1nombre de clauses : 10011
+ ---> succes
+sequence: 0000001 borne: 0nombre de clauses : 9912
+ ---> succes
+sequence: 01101000 borne: 1nombre de clauses : 18969
+ ---> succes
+sequence: 10011111 borne: 3nombre de clauses : 19708
+ ---> succes
+sequence: 011001101 borne: 2nombre de clauses : 34079
+ ---> succes
+sequence: 000110111 borne: 2nombre de clauses : 34079
+ ---> succes
+sequence: 0011000010 borne: 1nombre de clauses : 55851
+ ---> succes
+sequence: 1000010100 borne: 1nombre de clauses : 55851
+ ---> succes
+sequence: 11000111000 borne: 2nombre de clauses : 89778
+ ---> succes
+sequence: 01010101110 borne: 2nombre de clauses : 89899
+ ---> succes
+sequence: 011001100010 borne: 2nombre de clauses : 137096
+ ---> succes
+sequence: 010011100010 borne: 2nombre de clauses : 137096
+ ---> succes
+sequence: 1110000110011 borne: 4nombre de clauses : 204219
+ ---> succes
+sequence: 1000101110001 borne: 2nombre de clauses : 202822
+ ---> succes
+sequence: 11010101011110 borne: 5nombre de clauses : 294226
+ ---> succes
+sequence: 01000101000101 borne: 0nombre de clauses : 290206
+ ---> succes
+sequence: 111011100100000 borne: 4nombre de clauses : 410766
+ ---> succes
+sequence: 000001100111010 borne: 3nombre de clauses : 409713
+ ---> succes
+sequence: 0110111110011000 borne: 5nombre de clauses : 565096
+ ---> succes
+sequence: 0011110010110110 borne: 5nombre de clauses : 565096
+ ---> succes
+sequence: 01111100010010101 borne: 5nombre de clauses : 760795
+ ---> succes
+sequence: 10011011011100101 borne: 6nombre de clauses : 762152
+ ---> succes
+sequence: 101111101100101001 borne: 6nombre de clauses : 1009362
+ ---> succes
+sequence: 110101011010101010 borne: 4nombre de clauses : 1006626
+ ---> succes
+sequence: 1111101010000111001 borne: 7 ---> timeout
+sequence: 0111000101001000111 borne: 5 ---> timeout
+sequence: 10111110100001010010 borne: 6 ---> timeout
+sequence: 10110011010010001110 borne: 5 ---> timeout
+
+****** Test de d'insatisfiabilite ******
+
+sequence: 00 borne: 1nombre de clauses : 39
+ ---> succes
+sequence: 1 borne: 1nombre de clauses : 2
+ ---> succes
+sequence: 01000 borne: 1nombre de clauses : 2026
+ ---> succes
+sequence: 00110000 borne: 2nombre de clauses : 19236
+ ---> succes
+sequence: 11 borne: 2nombre de clauses : 54
+ ---> succes
+sequence: 111 borne: 3nombre de clauses : 276
+ ---> succes
+sequence: 1111 borne: 5nombre de clauses : 956
+ ---> succes
+sequence: 1111111 borne: 9nombre de clauses : 11490
+ ---> succes
+sequence: 111111111111111 borne: 23nombre de clauses : 427538
+ ---> timeout
+sequence: 1011011011 borne: 8nombre de clauses : 58838
+ ---> timeout
+sequence: 011010111110011 borne: 13nombre de clauses : 418713
+ ---> echec
+sequence: 01101011111000101 borne: 12nombre de clauses : 768476
+ ---> timeout
+sequence: 0110111001000101 borne: 9nombre de clauses : 568576
+ ---> timeout
+sequence: 000000000111000000110000000 borne: 6 ---> timeout
+sequence: 100010100 borne: 1nombre de clauses : 33490
+ ---> succes
+sequence: 01101011111110111 borne: 18nombre de clauses : 775523
+ ---> timeout
+sequence: 10 borne: 1nombre de clauses : 43
+ ---> succes
+sequence: 10 borne: 1nombre de clauses : 43
+ ---> succes
+sequence: 001 borne: 1nombre de clauses : 211
+ ---> succes
+sequence: 000 borne: 1nombre de clauses : 202
+ ---> succes
+sequence: 1001 borne: 2nombre de clauses : 816
+ ---> succes
+sequence: 1111 borne: 5nombre de clauses : 956
+ ---> succes
+sequence: 00111 borne: 3nombre de clauses : 2263
+ ---> succes
+sequence: 01001 borne: 2nombre de clauses : 2166
+ ---> succes
+sequence: 111010 borne: 4nombre de clauses : 5262
+ ---> succes
+sequence: 110110 borne: 4nombre de clauses : 5262
+ ---> succes
+sequence: 0010110 borne: 3nombre de clauses : 10418
+ ---> succes
+sequence: 0000001 borne: 1nombre de clauses : 9913
+ ---> succes
+sequence: 01101000 borne: 3nombre de clauses : 19516
+ ---> succes
+sequence: 10011111 borne: 8nombre de clauses : 20728
+ ---> succes
+sequence: 011001101 borne: 6nombre de clauses : 35175
+ ---> succes
+sequence: 000110111 borne: 6nombre de clauses : 35175
+ ---> succes
+sequence: 0011000010 borne: 3nombre de clauses : 56738
+ ---> succes
+sequence: 1000010100 borne: 3nombre de clauses : 56738
+ ---> succes
+sequence: 11000111000 borne: 6nombre de clauses : 91482
+ ---> timeout
+sequence: 01010101110 borne: 5nombre de clauses : 91183
+ ---> succes
+sequence: 011001100010 borne: 6nombre de clauses : 139152
+ ---> timeout
+sequence: 010011100010 borne: 6nombre de clauses : 139152
+ ---> timeout
+sequence: 1110000110011 borne: 9nombre de clauses : 207219
+ ---> timeout
+sequence: 1000101110001 borne: 5nombre de clauses : 204658
+ ---> timeout
+sequence: 11010101011110 borne: 11nombre de clauses : 298414
+ ---> timeout
+sequence: 01000101000101 borne: 1nombre de clauses : 290207
+ ---> timeout
+sequence: 111011100100000 borne: 9nombre de clauses : 414846
+ ---> timeout
+sequence: 000001100111010 borne: 7nombre de clauses : 413001
+ ---> timeout
+sequence: 0110111110011000 borne: 12nombre de clauses : 571592
+ ---> timeout
+sequence: 0011110010110110 borne: 12nombre de clauses : 571592
+ ---> timeout
+sequence: 01111100010010101 borne: 12nombre de clauses : 768187
+ ---> timeout
+sequence: 10011011011100101 borne: 13nombre de clauses : 769516
+ ---> timeout
+sequence: 101111101100101001 borne: 14nombre de clauses : 1018850
+ ---> timeout
+sequence: 110101011010101010 borne: 10nombre de clauses : 1013814
+ ---> timeout
+sequence: 1111101010000111001 borne: 15nombre de clauses : 1328668
+ ---> timeout
+sequence: 0111000101001000111 borne: 12nombre de clauses : 1323998
+ ---> timeout
+sequence: 10111110100001010010 borne: 13nombre de clauses : 1704988
+ ---> timeout
+sequence: 10110011010010001110 borne: 12nombre de clauses : 1703516
+ ---> timeout
+
+****** Test de calcul du meilleur score ******
+
+sequence: 00 borne attendue: 0 ---> succes
+sequence: 1 borne attendue: 0 ---> succes
+sequence: 01000 borne attendue: 0 ---> succes
+sequence: 00110000 borne attendue: 1 ---> succes
+sequence: 11 borne attendue: 1 ---> succes
+sequence: 111 borne attendue: 2 ---> succes
+sequence: 1111 borne attendue: 4 ---> succes
+sequence: 1111111 borne attendue: 8 ---> succes
+sequence: 111111111111111 borne attendue: 22 ---> timeout
+sequence: 1011011011 borne attendue: 7 ---> timeout
+sequence: 011010111110011 borne attendue: 12 ---> timeout
+sequence: 01101011111000101 borne attendue: 11 ---> timeout
+sequence: 0110111001000101 borne attendue: 8 ---> timeout
+sequence: 000000000111000000110000000 borne attendue: 5 ---> timeout
+sequence: 100010100 borne attendue: 0 ---> succes
+sequence: 01101011111110111 borne attendue: 17 ---> timeout
+sequence: 10 borne attendue: 0 ---> succes
+sequence: 10 borne attendue: 0 ---> succes
+sequence: 001 borne attendue: 0 ---> succes
+sequence: 000 borne attendue: 0 ---> succes
+sequence: 1001 borne attendue: 1 ---> succes
+sequence: 1111 borne attendue: 4 ---> succes
+sequence: 00111 borne attendue: 2 ---> succes
+sequence: 01001 borne attendue: 1 ---> succes
+sequence: 111010 borne attendue: 3 ---> succes
+sequence: 110110 borne attendue: 3 ---> succes
+sequence: 0010110 borne attendue: 2 ---> succes
+sequence: 0000001 borne attendue: 0 ---> succes
+sequence: 01101000 borne attendue: 2 ---> succes
+sequence: 10011111 borne attendue: 7 ---> succes
+sequence: 011001101 borne attendue: 5 ---> timeout
+sequence: 000110111 borne attendue: 5 ---> succes
+sequence: 0011000010 borne attendue: 2 ---> succes
+sequence: 1000010100 borne attendue: 2 ---> succes
+sequence: 11000111000 borne attendue: 5 ---> timeout
+sequence: 01010101110 borne attendue: 4 ---> succes
+sequence: 011001100010 borne attendue: 5 ---> timeout
+sequence: 010011100010 borne attendue: 5 ---> timeout
+sequence: 1110000110011 borne attendue: 8 ---> timeout
+sequence: 1000101110001 borne attendue: 4 ---> timeout
+sequence: 11010101011110 borne attendue: 10 ---> timeout
+sequence: 01000101000101 borne attendue: 0 ---> timeout
+sequence: 111011100100000 borne attendue: 8 ---> timeout
+sequence: 000001100111010 borne attendue: 6 ---> timeout
+sequence: 0110111110011000 borne attendue: 11 ---> timeout
+sequence: 0011110010110110 borne attendue: 11 ---> timeout
+sequence: 01111100010010101 borne attendue: 11 ---> timeout
+sequence: 10011011011100101 borne attendue: 12 ---> timeout
+sequence: 101111101100101001 borne attendue: 13 ---> timeout
+sequence: 110101011010101010 borne attendue: 9 ---> timeout
+sequence: 1111101010000111001 borne attendue: 14 ---> timeout
+sequence: 0111000101001000111 borne attendue: 11 ---> timeout
+sequence: 10111110100001010010 borne attendue: 12 ---> timeout
+sequence: 10110011010010001110 borne attendue: 11 ---> timeout
+
+RESULTATS TESTS
+
+Nombre de total de tests de satisfiabilite : 54
+      Correctement repondues: 49
+      Incorrectement repondues: 0
+      Timeouts: 5
+      Exceptions: 0
+
+Nombre de total de tests d' insatisfiabilite : 54
+      Correctement repondues: 28
+      Incorrectement repondues: 1
+      Timeouts: 25
+      Exceptions: 0
+
+Nombre de total de tests de calcul du meilleur score : 54
+      Correctement repondues: 27
+      Incorrectement repondues: 0
+      Timeouts: 27
+      Exceptions: 0
+
+Temps total pour le test: 720s
+
+
+
+
+Voir ce message dans son contexte 

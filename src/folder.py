@@ -95,8 +95,7 @@ def set_neighbors(matrix_size,
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
     for y in range(matrix_size):
         for x in range(matrix_size):
-            if neighborhood_symbol is None:
-                d = [-vpool.id((y, x, sequence_index1))]
+            d = [-vpool.id((y, x, sequence_index1))]
             for y2 in range(matrix_size):
                 for x2 in range(matrix_size):
                     # print("i = ", i
@@ -104,12 +103,36 @@ def set_neighbors(matrix_size,
                     #       , "\nk = ", k
                     #       , "\nl = ", l)
                     if are_neighbors(y, x, y2, x2):
-
-                        if neighborhood_symbol is None:
                             # print("              i, j, k, l", i, j, k, l)
                             d.append(vpool.id((y2, x2,
                                                sequence_index2)))
-                        else:
+            # print("d = ", d)
+            to_append.append(d)
+    return to_append
+
+
+def set_potential_neighbors_and_symbol(matrix_size,
+                                       vpool,
+                                       sequence_index1,
+                                       sequence_index2
+                                       , to_append
+                                       , neighborhood_symbol=None
+                                       # integer representing a locations pair neighborhood
+                                       ,
+                                       potential_neighbors_pairs_disjunctions_symbols=None
+                                       ):
+    # print("set_neighbors", a, b)
+    # deux points (i, j), (k, l) ∈ N² sont voisins si
+    # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
+    for y in range(matrix_size):
+        for x in range(matrix_size):
+            for y2 in range(matrix_size):
+                for x2 in range(matrix_size):
+                    # print("i = ", i
+                    #       , "\nj = ", j
+                    #       , "\nk = ", k
+                    #       , "\nl = ", l)
+                    if are_neighbors(y, x, y2, x2):
                             # neighborhood_symbol <-> neighborhood
 
                             # neighborhood_symbol -> neighborhood &
@@ -117,58 +140,16 @@ def set_neighbors(matrix_size,
 
                             # -neighborhood_symbol | neighborhood &
                             # neighborhood_symbol | neighborhood
+                            add_neighborhood_and_symbol_equivalence(to_append
+                                                                    , vpool
+                                                                    , y
+                                                                    , x
+                                                                    , sequence_index1
+                                                                    , y2
+                                                                    , x2
+                                                                    , sequence_index2
+                                                                    , neighborhood_symbol)
 
-                            to_append.append([
-                                vpool.id((y
-                                          , x
-                                          ,
-                                          sequence_index1))
-                                , -neighborhood_symbol
-                                , -vpool.id((y2
-                                             , x2
-                                             ,
-                                             sequence_index2
-                                             ))])
-                            to_append.append([
-                                vpool.id((y2
-                                          , x2
-                                          ,
-                                          sequence_index2
-                                          ))
-                                , -neighborhood_symbol
-                                , -vpool.id((y
-                                             , x
-                                             ,
-                                             sequence_index1))
-                            ])
-                            to_append.append([
-                                neighborhood_symbol
-                                , -vpool.id((y
-                                             , x
-                                             ,
-                                             sequence_index1))
-                                , -vpool.id((y2
-                                             , x2
-                                             ,
-                                             sequence_index2
-                                             ))])
-                            # to_append.append([neighborhood_symbol,
-                            #                   -vpool.id((y
-                            #                              , x
-                            #                              ,
-                            #                              sequence_index1))])
-                            # to_append.append(
-                            #     [-neighborhood_symbol,
-                            #      vpool.id((y2
-                            #                , x2
-                            #                , sequence_index2
-                            #                ))])
-                            # to_append.append(
-                            #     [neighborhood_symbol,
-                            #      -vpool.id((y2
-                            #                 , x2
-                            #                 , sequence_index2
-                            #                 ))])
                             potential_neighbors_pairs_disjunctions_symbols.append(
                                 neighborhood_symbol)
                             neighborhood_symbol += 1
@@ -178,13 +159,44 @@ def set_neighbors(matrix_size,
                             # print(sequence_index1, sequence_index2)
                             # print("neighborhood_symbol",
                             #       neighborhood_symbol)
-            if neighborhood_symbol is None:
-                # print("d = ", d)
-                to_append.append(d)
-    if neighborhood_symbol is not None:
-        return neighborhood_symbol
-    else:
-        return to_append
+    return to_append, neighborhood_symbol
+
+
+def add_neighborhood_and_symbol_equivalence(to_append
+                                            , vpool
+                                            , x
+                                            , y
+                                            , sequence_index1
+                                            , x2
+                                            , y2
+                                            , sequence_index2
+                                            , neighborhood_symbol):
+    to_append.append([vpool.id((y
+                                , x
+                                , sequence_index1))
+                         , -neighborhood_symbol
+                         , -vpool.id((y2
+                                      , x2
+                                      , sequence_index2
+                                      ))])
+    to_append.append([vpool.id((y2
+                                , x2
+                                , sequence_index2
+                                ))
+                         , -neighborhood_symbol
+                         , -vpool.id((y
+                                      , x
+                                      , sequence_index1))
+                      ])
+    to_append.append([neighborhood_symbol
+                         , -vpool.id((y
+                                      , x
+                                      , sequence_index1))
+                         , -vpool.id((y2
+                                      , x2
+                                      , sequence_index2
+                                      ))])
+    return to_append
 
 
 # sequence elements 2 by 2 are neighbors
@@ -268,19 +280,21 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
                     # potential_neighbors_pairs_disjunctions_symbols \
                     #     .append(neighborhood_symbol)
 
-                    neighborhood_symbol = set_neighbors(matrix_size
-                                                        ,
-                                                        vpool=vpool
-                                                        ,
-                                                        sequence_index1=index
-                                                        ,
-                                                        sequence_index2=index2
-                                                        , to_append=cnf
-                                                        ,
-                                                        neighborhood_symbol=neighborhood_symbol
-                                                        ,
-                                                        potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-                                                        )
+                    cnf, neighborhood_symbol = \
+                        set_potential_neighbors_and_symbol(
+                        matrix_size
+                        ,
+                        vpool=vpool
+                        ,
+                        sequence_index1=index
+                        ,
+                        sequence_index2=index2
+                        , to_append=cnf
+                        ,
+                        neighborhood_symbol=neighborhood_symbol
+                        ,
+                        potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
+                    )
         return potential_neighbors_pairs_disjunctions_symbols
     return None
 
@@ -303,11 +317,11 @@ def card(cnf
     # for lit in X:
     # print("lit = ", lit)
     # print("vpool.id(lit) = ", vpool.id(lit))
-    cnf = cnf.extend(CardEnc.atleast(lits=X
-                                     , bound=k
-                                     , vpool=vpool
-                                     , encoding=EncType.seqcounter
-                                     ))
+    cnf.extend(CardEnc.atleast(lits=X
+                               , bound=k
+                               , vpool=vpool
+                               , encoding=EncType.seqcounter
+                               ))
     return cnf
 
 
@@ -390,7 +404,8 @@ def set_min_cardinality(seq
         if 1 < len(pairs_potential_neighborings_disjunctions_symbols):
             cnf = card(cnf
                        , vpool
-                       , pairs_potential_neighborings_disjunctions_symbols
+                       ,
+                       pairs_potential_neighborings_disjunctions_symbols
                        , bound
                        )
     else:
@@ -404,10 +419,16 @@ def set_clauses(seq,
                 , bound
                 , matrix_size
                 ):
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
     all_values_used(sequence_length
                     , cnf
                     , vpool
                     , matrix_size)
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
 
     # sequence elements 2 by 2 are neighbors
     sequence_neighboring_maintain(sequence_length,
@@ -415,15 +436,24 @@ def set_clauses(seq,
                                   vpool
                                   , matrix_size
                                   )
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
     # au plus une valeur par case
     max1value_per_location(sequence_length
                            , cnf
                            , vpool
                            , matrix_size)
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
     max1location_per_value(sequence_length
                            , cnf
                            , vpool
                            , matrix_size)
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
 
     set_min_cardinality(
         seq
@@ -434,6 +464,9 @@ def set_clauses(seq,
         , bound=bound
         , matrix_size=matrix_size
     )
+    txt = "clauses quantity:"
+    print(f'{txt, cnf.nv}')
+    print()
 
     return cnf
 
@@ -807,6 +840,7 @@ def incremental_search(seq
 
     return sol
 
+
 def compute_max_score(seq
                       , method="dichotomy"
                       , display=True):
@@ -1015,7 +1049,7 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
-# exist_sol("00110000",1)
+exist_sol("00111", 1)
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
 # compute_max_score("100010100")
@@ -1026,7 +1060,7 @@ def test_code():
 # compute_max_score("0011110010110110")
 #
 # compute_max_score("10110011010010001110")
-test_code()
+# test_code()
 # dichotomy("011001101")
 # compute_max_score("011001101")
 
