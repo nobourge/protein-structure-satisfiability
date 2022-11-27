@@ -124,15 +124,22 @@ def set_potential_neighbors_and_symbol(matrix_size,
     # print("set_neighbors", a, b)
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
+    pos_pairs = []
     for y in range(matrix_size):
         for x in range(matrix_size):
-            for y2 in range(matrix_size):
-                for x2 in range(matrix_size):
+            for y2 in range(y-1, y+1):
+                for x2 in range(x-1, x+1):
+                    if y2 < 0 or y2 >= matrix_size \
+                            or x2 < 0 or x2 >= matrix_size:
+                        continue
                     # print("i = ", i
                     #       , "\nj = ", j
                     #       , "\nk = ", k
                     #       , "\nl = ", l)
                     if are_neighbors(y, x, y2, x2):
+                        if (y, x, y2, x2) not in pos_pairs:
+                            # pos_pairs.append((y, x, y2, x2))
+                            pos_pairs.append((y2, x2, y, x))
                             # neighborhood_symbol <-> neighborhood
 
                             # neighborhood_symbol -> neighborhood &
@@ -171,27 +178,28 @@ def add_neighborhood_and_symbol_equivalence(to_append
                                             , y2
                                             , sequence_index2
                                             , neighborhood_symbol):
-    to_append.append([vpool.id((y
-                                , x
-                                , sequence_index1))
-                         , -neighborhood_symbol
-                         , -vpool.id((y2
-                                      , x2
-                                      , sequence_index2
-                                      ))])
-    to_append.append([vpool.id((y2
-                                , x2
-                                , sequence_index2
-                                ))
-                         , -neighborhood_symbol
-                         , -vpool.id((y
-                                      , x
-                                      , sequence_index1))
-                      ])
+    # to_append.append([vpool.id((y
+    #                             , x
+    #                             , sequence_index1))
+    #                      , -neighborhood_symbol
+    #                      , -vpool.id((y2
+    #                                   , x2
+    #                                   , sequence_index2
+    #                                   ))])
+    # to_append.append([vpool.id((y2
+    #                             , x2
+    #                             , sequence_index2
+    #                             ))
+    #                      , -neighborhood_symbol
+    #                      , -vpool.id((y
+    #                                   , x
+    #                                   , sequence_index1))
+    #                   ])
     to_append.append([neighborhood_symbol
                          , -vpool.id((y
                                       , x
-                                      , sequence_index1))
+                                      , sequence_index1
+                                      ))
                          , -vpool.id((y2
                                       , x2
                                       , sequence_index2
@@ -225,6 +233,8 @@ def sequence_neighboring_maintain(sequence_length
     print()
 
     return cnf
+
+# def is_in_matr
 
 
 def are_neighbors(i, j, k, m):
@@ -290,6 +300,9 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
 
                     # potential_neighbors_pairs_disjunctions_symbols \
                     #     .append(neighborhood_symbol)
+
+                    # create new set to append neighborhood without
+                    neighborhood_set = {}
 
                     cnf, neighborhood_symbol = \
                         set_potential_neighbors_and_symbol(
@@ -523,12 +536,10 @@ def print_solution_variables(seq,
 
 
 def get_matrix_size(sequence_length):
-    # matrix_size = int(sequence_length // 2)
-    # if 0 < sequence_length % 2 or \
-    #         sequence_length == 2:
-    #     matrix_size += 1
-    # return matrix_size
-    return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
+    # todo cubic square root of squared sequence_length
+    # todo return int(sequence_length ** (2 / 3))
+    # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
+    return math.ceil((1 + sequence_length)/2)
 
 
 def get_index_matrix(sequence_length
@@ -1081,11 +1092,11 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 ##################################################################################################################################################
-
-exist_sol("00", 0)
-exist_sol('1', 0)
-exist_sol('01000', 0)
-exist_sol("00111", 1)
+#
+# exist_sol("00", 0)
+# exist_sol('1', 0)
+# exist_sol('01000', 0)
+# exist_sol("00111", 1)
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
 # compute_max_score("100010100")
@@ -1096,7 +1107,7 @@ exist_sol("00111", 1)
 # compute_max_score("0011110010110110")
 #
 # compute_max_score("10110011010010001110")
-# test_code()
+test_code()
 # dichotomy("011001101")
 # compute_max_score("011001101")
 
