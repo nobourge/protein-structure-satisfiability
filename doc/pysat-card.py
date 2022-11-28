@@ -1,6 +1,5 @@
 from pysat.card import *
-from pysat.card import ITotalizer
-
+from pysat.formula import CNF
 
 def test():
     print(1)
@@ -93,5 +92,5 @@ def test():
         print(t.rhs)
     # [6, 7]
 
-
+    print(cnf.clauses)
 test()

@@ -77,6 +77,20 @@ test = options.test
 
 ###############################################################################################
 
+class verbose:
+    def __init__(self, verbose):
+        self.verbose = verbose
+
+    def __enter__(self):
+        if self.verbose:
+            print("verbose mode")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.verbose:
+            print("verbose mode end")
+    # todo: add a verbose mode
+
+
 # clauses = contraintes
 
 
@@ -90,7 +104,7 @@ def set_neighbors(matrix_size,
                   # integer representing a locations pair neighborhood
                   , potential_neighbors_pairs_disjunctions_symbols=None
                   ):
-    # print("set_neighbors", a, b)
+    # print("set_neighbors()", a, b)
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
     for y in range(matrix_size):
@@ -103,9 +117,9 @@ def set_neighbors(matrix_size,
                     #       , "\nk = ", k
                     #       , "\nl = ", l)
                     if are_neighbors(y, x, y2, x2):
-                            # print("              i, j, k, l", i, j, k, l)
-                            d.append(vpool.id((y2, x2,
-                                               sequence_index2)))
+                        # print("              i, j, k, l", i, j, k, l)
+                        d.append(vpool.id((y2, x2,
+                                           sequence_index2)))
             # print("d = ", d)
             to_append.append(d)
     return to_append
@@ -127,8 +141,8 @@ def set_potential_neighbors_and_symbol(matrix_size,
     pos_pairs = []
     for y in range(matrix_size):
         for x in range(matrix_size):
-            for y2 in range(y-1, y+1):
-                for x2 in range(x-1, x+1):
+            for y2 in range(y - 1, y + 1):
+                for x2 in range(x - 1, x + 1):
                     if y2 < 0 or y2 >= matrix_size \
                             or x2 < 0 or x2 >= matrix_size:
                         continue
@@ -147,15 +161,16 @@ def set_potential_neighbors_and_symbol(matrix_size,
 
                             # -neighborhood_symbol | neighborhood &
                             # neighborhood_symbol | neighborhood
-                            add_neighborhood_and_symbol_equivalence(to_append
-                                                                    , vpool
-                                                                    , y
-                                                                    , x
-                                                                    , sequence_index1
-                                                                    , y2
-                                                                    , x2
-                                                                    , sequence_index2
-                                                                    , neighborhood_symbol)
+                            add_neighborhood_and_symbol_equivalence(
+                                to_append
+                                , vpool
+                                , y
+                                , x
+                                , sequence_index1
+                                , y2
+                                , x2
+                                , sequence_index2
+                                , neighborhood_symbol)
 
                             potential_neighbors_pairs_disjunctions_symbols.append(
                                 neighborhood_symbol)
@@ -195,6 +210,16 @@ def add_neighborhood_and_symbol_equivalence(to_append
     #                                   , x
     #                                   , sequence_index1))
     #                   ])
+    to_append.append([-neighborhood_symbol
+                         , vpool.id((y
+                                     , x
+                                     , sequence_index1
+                                     ))])
+    to_append.append([-neighborhood_symbol
+                         , vpool.id((y2
+                                     , x2
+                                     , sequence_index2
+                                     ))])
     to_append.append([neighborhood_symbol
                          , -vpool.id((y
                                       , x
@@ -233,6 +258,7 @@ def sequence_neighboring_maintain(sequence_length
     print()
 
     return cnf
+
 
 # def is_in_matr
 
@@ -306,22 +332,25 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
 
                     cnf, neighborhood_symbol = \
                         set_potential_neighbors_and_symbol(
-                        matrix_size
-                        ,
-                        vpool=vpool
-                        ,
-                        sequence_index1=index
-                        ,
-                        sequence_index2=index2
-                        , to_append=cnf
-                        ,
-                        neighborhood_symbol=neighborhood_symbol
-                        ,
-                        potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-                    )
+                            matrix_size
+                            ,
+                            vpool=vpool
+                            ,
+                            sequence_index1=index
+                            ,
+                            sequence_index2=index2
+                            , to_append=cnf
+                            ,
+                            neighborhood_symbol=neighborhood_symbol
+                            ,
+                            potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
+                        )
         return potential_neighbors_pairs_disjunctions_symbols
     return None
 
+
+# vous pouvez utiliser les methodes de la classe pysat.card pour
+# creer des contraintes de cardinalites (au moins k, au plus k,...)
 
 # fonction card
 # qui prend en entree un
@@ -336,7 +365,7 @@ def card(cnf
          , k
          ):
     print("card()")
-    # , X, k)
+    # print("X=", X, "k=", k)
 
     # for lit in X:
     # print("lit = ", lit)
@@ -396,6 +425,7 @@ def max1location_per_value(sequence_length
                             # can't have same index
                             cnf.append([-vpool.id((x, y, index)),
                                         -vpool.id((x2, y2, index))])
+    return cnf
 
 
 # si X_{x,y,i} alors non X_{x,y,i'}
@@ -424,7 +454,6 @@ def max1value_per_location(sequence_length,
     print()
 
     return cnf
-
 
 
 def set_min_cardinality(seq
@@ -456,6 +485,7 @@ def set_min_cardinality(seq
                        )
     else:
         print("No potential neighborings")
+    return cnf
 
 
 def set_clauses(seq,
@@ -477,31 +507,31 @@ def set_clauses(seq,
     print()
 
     # sequence elements 2 by 2 are neighbors
-    sequence_neighboring_maintain(sequence_length,
-                                  cnf,
-                                  vpool
-                                  , matrix_size
-                                  )
+    cnf = sequence_neighboring_maintain(sequence_length,
+                                        cnf,
+                                        vpool
+                                        , matrix_size
+                                        )
     txt = "clauses quantity:"
     print(f'{txt, cnf.nv}')
     print()
     # au plus une valeur par case
-    max1value_per_location(sequence_length
-                           , cnf
-                           , vpool
-                           , matrix_size)
+    cnf = max1value_per_location(sequence_length
+                                 , cnf
+                                 , vpool
+                                 , matrix_size)
     txt = "clauses quantity:"
     print(f'{txt, cnf.nv}')
     print()
-    max1location_per_value(sequence_length
-                           , cnf
-                           , vpool
-                           , matrix_size)
+    cnf = max1location_per_value(sequence_length
+                                 , cnf
+                                 , vpool
+                                 , matrix_size)
     txt = "clauses quantity:"
     print(f'{txt, cnf.nv}')
     print()
 
-    set_min_cardinality(
+    cnf = set_min_cardinality(
         seq
         , sequence_length
         , cnf
@@ -539,7 +569,8 @@ def get_matrix_size(sequence_length):
     # todo cubic square root of squared sequence_length
     # todo return int(sequence_length ** (2 / 3))
     # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
-    return math.ceil((1 + sequence_length)/2)
+    # return math.ceil((1 + sequence_length) / 2)
+    return sequence_length
 
 
 def get_index_matrix(sequence_length
@@ -793,7 +824,6 @@ def exist_sol(seq, bound):
     # retourne True si et seulement si il
     # existe un plongement de score au moins 'bound'
     # A COMPLETER
-    # clauses = card(X, k)
     print()
     print("exist_sol() ")
     print("seq: ", seq)
@@ -807,16 +837,14 @@ def exist_sol(seq, bound):
     return False
 
 
-# vous pouvez utiliser les methodes de la classe pysat.card pour
-# creer des contraintes de cardinalites (au moins k, au plus k,...)
-
 def get_max_contacts(seq: str) -> int:
     # retourne le nombre maximal de contacts
     print("get_max_contacts() ")
     n = len(seq)
     total = 0
     for i in range(n - 3):
-        if seq[i] != "1": continue
+        if seq[i] != "1":
+            continue
         total += min(2, seq[i + 3:n:2].count("1"))
     print("total: ", total)
     return total
@@ -1099,6 +1127,7 @@ def test_code():
 # exist_sol("00111", 1)
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
+# exist_sol("100010100", 0)
 # compute_max_score("100010100")
 # compute_max_score("000110111")
 # compute_max_score("0011000010")
@@ -1110,6 +1139,8 @@ def test_code():
 test_code()
 # dichotomy("011001101")
 # compute_max_score("011001101")
+get_max_contacts("011001101")
+get_max_contacts("11010101011110")
 
 if test:
     print("Let's test your code")
