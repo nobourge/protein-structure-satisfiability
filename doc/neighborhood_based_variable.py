@@ -67,8 +67,7 @@ def add_neighborhood_and_symbol_equivalence(to_append
                          , -vpool.id((y2
                                       , x2
                                       , sequence_index2
-                                      ))
-                         , neighborhood_symbol])
+                                      ))])
     return to_append
 
 
@@ -272,25 +271,58 @@ def get_index_matrix(sequence_length
     matrix = numpy.matrix(numpy.zeros(shape=(matrix_size, matrix_size)))
     # matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
     # print("sequence_length", sequence_length)
-    for index_i in range(matrix_size):
-        for j in range(matrix_size):
-            # print("i", index_i)
-            # print("j", j)
+    # y=0
+    # x=0
+    # y2=0
+    # x2=0
+    # index1=0
+    # index2=0
+    # valued_location_quantity = 0
+    # while not valued_location_quantity == sequence_length:
+    #     if sol[vpool.id((y, x, index1, y2, x2, index2))]:
+    #         matrix[y, x] = index1
+    #         valued_location_quantity += 1
+    #     # increment
+    #     if x < matrix_size - 1:
+    #         x += 1
+    #     else:
+    #         x = 0
+    #         y += 1
+    #     if x2 < matrix_size - 1:
+    #         x2 += 1
+    #     else:
+    #         x2 = 0
+    #         y2 += 1
 
-            location_valued = False
-            for v in range(sequence_length):
-                # print("v: ", v)
-                # print("type(v): ", type(v))
-                if vpool.id((index_i, j, v)) in sol:
-                    # print("v: ", v)
-                    # print("type(v): ", type(v))
-                    matrix[index_i, j] = v
-                    location_valued = True
-            if not location_valued:
-                # print("Error: no value for location: ", index_i, j)
-                matrix[index_i, j] = None
-                # print(matrix)
-            # print(matrix)
+
+
+    for y in range(matrix_size):
+        for x in range(matrix_size):
+            for y2 in range(matrix_size):
+                for x2 in range(matrix_size):
+                    # print("i", index_i)
+                    # print("j", j)
+
+                    xy_valued = False
+                    x2y2_valued = False
+                    for index1 in range(sequence_length):
+                        for index2 in range(sequence_length):
+
+                            # print("v: ", v)
+                            # print("type(v): ", type(v))
+                            if sol[vpool.id((y, x, index1, y2, x2, index2))]:
+                                #         matrix[y, x] = index1
+                                #         valued_location_quantity += 1:
+                                # print("v: ", v)
+                                # print("type(v): ", type(v))
+                                matrix[y, x] = index1
+                                matrix[y2, x2] = index2
+                                xy_valued = True
+                        if not xy_valued:
+                            # print("Error: no value for location: ", index_i, j)
+                            matrix[y, x] = None
+                            # print(matrix)
+                        # print(matrix)
 
     return matrix
 
@@ -461,4 +493,3 @@ def get_interpretation(solver
 # solve("00", 0)
 # solve("100010100", 0)
 solve("1001", 0)
-solve("111001", 0)
