@@ -151,9 +151,9 @@ def set_potential_neighbors_and_symbol(matrix_size,
                     #       , "\nk = ", k
                     #       , "\nl = ", l)
                     if are_neighbors(y, x, y2, x2):
-                        if (y, x, y2, x2) not in pos_pairs:
-                            # pos_pairs.append((y, x, y2, x2))
-                            pos_pairs.append((y2, x2, y, x))
+                        # if (y, x, y2, x2) not in pos_pairs:
+                        #     # pos_pairs.append((y, x, y2, x2))
+                        #     pos_pairs.append((y2, x2, y, x))
                             # neighborhood_symbol <-> neighborhood
 
                             # neighborhood_symbol -> neighborhood &
@@ -316,11 +316,15 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
         # of desired value
         potential_neighbors_pairs_disjunctions_symbols = []
         neighborhood_symbol = 1
+        # loop over all pairs of potential_neighbors
+        # first 0
         for index in potential_neighbors:
+            # 1
             for index2 in potential_neighbors:
-                if index != index2 and \
-                        (
-                                index - index2) % 2 != 0:  # index and index2 are
+                # index2 different index
+                if index != index2:
+                    # todo if (index - index2) % 2 != 0:  # index and
+                    # index2 are
                     # separated by a pair
                     # quantity of elements
 
@@ -435,7 +439,7 @@ def max1value_per_location(sequence_length,
                            vpool
                            , matrix_size
                            ):
-    print("max1value_per_location")
+    print("max1value_per_location()")
 
     txt = "clauses quantity:"
     print(f'{txt, cnf.nv}')
@@ -811,6 +815,8 @@ def solve(seq,
 
 def get_interpretation(solver
                        ):
+    print("get_interpretation()")
+
     interpretation = solver.get_model()  # extracting a
     # satisfying assignment for CNF formula given to the solver
     # A model is provided if a previous SAT call returned True.

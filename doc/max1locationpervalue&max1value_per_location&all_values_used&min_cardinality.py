@@ -163,9 +163,10 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
     # potential_neighbors = [i for i in
     #                        range(sequence_length)]  # liste des voisins
     # # potentiels
-    potential_neighbors = [0, 3]
-    if 0 < len(potential_neighbors):
-        print("potential_neighbors", potential_neighbors)
+    # potential_neighbors = [0, 1]
+    # potential_neighbors = [0, 3]
+    if 0 ==0:
+        # print("potential_neighbors", potential_neighbors)
         # of desired value
         potential_neighbors_pairs_disjunctions_symbols = []
         neighborhood_symbol = 1
@@ -203,23 +204,23 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
                 potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
             )
 
-        # index = 4
-        # index2 = 7
-        # cnf, neighborhood_symbol = \
-        #     set_potential_neighbors_and_symbol(
-        #         matrix_size
-        #         ,
-        #         vpool=vpool
-        #         ,
-        #         sequence_index1=index
-        #         ,
-        #         sequence_index2=index2
-        #         , to_append=cnf
-        #         ,
-        #         neighborhood_symbol=neighborhood_symbol
-        #         ,
-        #         potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-        #     )
+        index = 2
+        index2 = 3
+        cnf, neighborhood_symbol = \
+            set_potential_neighbors_and_symbol(
+                matrix_size
+                ,
+                vpool=vpool
+                ,
+                sequence_index1=index
+                ,
+                sequence_index2=index2
+                , to_append=cnf
+                ,
+                neighborhood_symbol=neighborhood_symbol
+                ,
+                potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
+            )
         # index = 1
         # index2 = 5
         # cnf, neighborhood_symbol = \
@@ -411,7 +412,7 @@ def max1value_per_location(sequence_length,
                            vpool
                            , matrix_size
                            ):
-    print("max1value_per_location")
+    print("max1value_per_location()")
 
     txt = "clauses quantity:"
     print(f'{txt, cnf.nv}')
@@ -430,24 +431,24 @@ def max1value_per_location(sequence_length,
     print()
 
     return cnf
-#
-# def max1location_per_value(sequence_length
-#                            , cnf
-#                            , vpool
-#                            , matrix_size):
-#     print("max1location_per_value()")
-#     for index in range(sequence_length):  # take 1 index
-#         for x in range(matrix_size):
-#             for y in range(matrix_size):  # take 1 cell
-#                 for x2 in range(matrix_size):
-#                     for y2 in range(matrix_size):  # take 2nd cell
-#                         if not (x == x2 and
-#                                 y == y2):
-#                             # cell 1 and 2
-#                             # can't have same index
-#                             cnf.append([-vpool.id((x, y, index)),
-#                                         -vpool.id((x2, y2, index))])
-#     return cnf
+
+def max1location_per_value(sequence_length
+                           , cnf
+                           , vpool
+                           , matrix_size):
+    print("max1location_per_value()")
+    for index in range(sequence_length):  # take 1 index
+        for x in range(matrix_size):
+            for y in range(matrix_size):  # take 1 cell
+                for x2 in range(matrix_size):
+                    for y2 in range(matrix_size):  # take 2nd cell
+                        if not (x == x2 and
+                                y == y2):
+                            # cell 1 and 2
+                            # can't have same index
+                            cnf.append([-vpool.id((x, y, index)),
+                                        -vpool.id((x2, y2, index))])
+    return cnf
 
 def solve(seq,
           bound
@@ -473,8 +474,10 @@ def solve(seq,
     print("matrix_size", matrix_size)
     cnf = max1value_per_location(sequence_length, cnf, vpool,
                                  matrix_size)
-    # cnf = max1location_per_value(sequence_length, cnf, vpool,
-    #                              matrix_size)
+
+    cnf = max1location_per_value(sequence_length, cnf, vpool,
+                                 matrix_size)
+
     cnf = all_values_used(sequence_length
                           , cnf
                           , vpool
@@ -519,11 +522,29 @@ def solve(seq,
             print(get_representation(value_matrix
                                      ))
             return value_matrix
+
+        interpretation = get_interpretation(solver
+                                            )
+        index_matrix = get_index_matrix(sequence_length
+                                        , matrix_size
+                                        , vpool
+                                        , interpretation
+                                        )
+        value_matrix = get_value_matrix(index_matrix
+                                        , seq
+                                        , matrix_size)
+        display = True
+        if display:
+            print("\nVoici une solution: \n")
+            print(get_representation(value_matrix
+                                     ))
+            return value_matrix
     return None
 
 
 def get_interpretation(solver
                        ):
+    print("get_interpretation()")
     interpretation = solver.get_model()  # extracting a
     # satisfying assignment for CNF formula given to the solver
     # A model is provided if a previous SAT call returned True.
