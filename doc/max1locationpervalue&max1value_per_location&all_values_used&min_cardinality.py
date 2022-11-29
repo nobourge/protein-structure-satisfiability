@@ -12,12 +12,18 @@ def card(cnf
          , k
          ):
     print("card()")
-    # , X, k)
+    print("bound=", k)
 
-    # for lit in X:
+    for lit in X:
     # print("lit = ", lit)
-    # print("vpool.id(lit) = ", vpool.id(lit))
-    cnf.extend(CardEnc.atleast(lits=X
+        print("vpool.id(lit) = ", vpool.id(lit))
+    # cnf.extend(CardEnc.atleast(lits=X
+    #                            # cnf.append(CardEnc.atleast(lits=X
+    #                            , bound=k
+    #                            , vpool=vpool
+    #                            , encoding=EncType.seqcounter
+    #                            ))
+    cnf.extend(CardEnc.equals(lits=X
                                # cnf.append(CardEnc.atleast(lits=X
                                , bound=k
                                , vpool=vpool
@@ -35,23 +41,6 @@ def add_neighborhood_and_symbol_equivalence(to_append
                                             , y2
                                             , sequence_index2
                                             , neighborhood_symbol):
-    # to_append.append([vpool.id((y
-    #                             , x
-    #                             , sequence_index1))
-    #                      , -neighborhood_symbol
-    #                      , -vpool.id((y2
-    #                                   , x2
-    #                                   , sequence_index2
-    #                                   ))])
-    # to_append.append([vpool.id((y2
-    #                             , x2
-    #                             , sequence_index2
-    #                             ))
-    #                      , -neighborhood_symbol
-    #                      , -vpool.id((y
-    #                                   , x
-    #                                   , sequence_index1))
-    #                   ])
     to_append.append([-vpool.id(neighborhood_symbol)
                          , vpool.id((y
                                      , x
@@ -141,7 +130,7 @@ def set_potential_neighbors_and_symbol(matrix_size,
                                 neighborhood_symbol)
                             neighborhood_symbol += 1
                             #
-                            # print("x, y, x2, y2", x, y, x2, y2)
+                            print("x, y, x2, y2", x, y, x2, y2)
                             #
                             # print("neighborhood_symbol",
                             #       neighborhood_symbol)
@@ -165,7 +154,7 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
     # # potentiels
     # potential_neighbors = [0, 1]
     # potential_neighbors = [0, 3]
-    if 0 ==0:
+    if 0 == 0:
         # print("potential_neighbors", potential_neighbors)
         # of desired value
         potential_neighbors_pairs_disjunctions_symbols = []
@@ -203,58 +192,25 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
                 ,
                 potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
             )
+        #
+        # index = 2
+        # index2 = 3
+        # cnf, neighborhood_symbol = \
+        #     set_potential_neighbors_and_symbol(
+        #         matrix_size
+        #         ,
+        #         vpool=vpool
+        #         ,
+        #         sequence_index1=index
+        #         ,
+        #         sequence_index2=index2
+        #         , to_append=cnf
+        #         ,
+        #         neighborhood_symbol=neighborhood_symbol
+        #         ,
+        #         potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
+        #     )
 
-        index = 2
-        index2 = 3
-        cnf, neighborhood_symbol = \
-            set_potential_neighbors_and_symbol(
-                matrix_size
-                ,
-                vpool=vpool
-                ,
-                sequence_index1=index
-                ,
-                sequence_index2=index2
-                , to_append=cnf
-                ,
-                neighborhood_symbol=neighborhood_symbol
-                ,
-                potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-            )
-        # index = 1
-        # index2 = 5
-        # cnf, neighborhood_symbol = \
-        #     set_potential_neighbors_and_symbol(
-        #         matrix_size
-        #         ,
-        #         vpool=vpool
-        #         ,
-        #         sequence_index1=index
-        #         ,
-        #         sequence_index2=index2
-        #         , to_append=cnf
-        #         ,
-        #         neighborhood_symbol=neighborhood_symbol
-        #         ,
-        #         potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-        #     )
-        # index = 3
-        # index2 = 6
-        # cnf, neighborhood_symbol = \
-        #     set_potential_neighbors_and_symbol(
-        #         matrix_size
-        #         ,
-        #         vpool=vpool
-        #         ,
-        #         sequence_index1=index
-        #         ,
-        #         sequence_index2=index2
-        #         , to_append=cnf
-        #         ,
-        #         neighborhood_symbol=neighborhood_symbol
-        #         ,
-        #         potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-        #     )
         return potential_neighbors_pairs_disjunctions_symbols
     return None
 
@@ -432,6 +388,7 @@ def max1value_per_location(sequence_length,
 
     return cnf
 
+
 def max1location_per_value(sequence_length
                            , cnf
                            , vpool
@@ -449,6 +406,7 @@ def max1location_per_value(sequence_length
                             cnf.append([-vpool.id((x, y, index)),
                                         -vpool.id((x2, y2, index))])
     return cnf
+
 
 def solve(seq,
           bound
@@ -552,8 +510,18 @@ def get_interpretation(solver
     # Return type list(int) or None
 
     print("interpretation", interpretation)
+    print("interpretation size", len(interpretation))
 
-    return interpretation
+    # cette interpretation est longue,
+    # on va filtrer les valeurs positives
+    filtered_interpretation = list(
+        filter(lambda x: x >= 0, interpretation))
+    print("filtered_interpretation", filtered_interpretation)
+    print("filtered_interpretation size", len(filtered_interpretation))
+
+
+    # return interpretation
+    return filtered_interpretation
 
 #
 solve("00", 0)

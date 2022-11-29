@@ -6,6 +6,8 @@
 # la librairie func_timeout
 import sys
 import numpy
+# from pip._internal.utils import logging
+import logging
 from pysat.solvers import Minisat22
 # from pysat.solvers import Glucose4
 # from pysat.formula import CNF
@@ -23,11 +25,17 @@ sys.stdout = AutoIndent(sys.stdout)
 
 # Usage: folder.py [options]
 
-# Options: -h, --help            show this help message and exit -s
-# SEQ, --sequence=SEQ specify the input sequence -b BOUND,
-# --bound=BOUND specify a lower bound on the score -p, --print
-# print solution -i, --incremental     incremental mode: try small
-# bounds first and increment -v, --verbose         verbose mode -t,
+# Options: -h, --help            show this help message and exit
+# -s
+# SEQ,
+# --sequence=SEQ specify the input sequence
+# -b BOUND,
+# --bound=BOUND specify a lower bound on the score
+# -p, --print
+# print solution
+# -i, --incremental     incremental mode: try small
+# bounds first and increment
+# -v, --verbose         verbose mode -t,
 # --test            testing mode
 
 # on doit TOUJOURS donner une sequence * lorsqu'une borne est donnee,
@@ -76,19 +84,6 @@ test = options.test
 
 
 ###############################################################################################
-
-class verbose:
-    def __init__(self, verbose):
-        self.verbose = verbose
-
-    def __enter__(self):
-        if self.verbose:
-            print("verbose mode")
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.verbose:
-            print("verbose mode end")
-    # todo: add a verbose mode
 
 
 # clauses = contraintes
@@ -154,33 +149,33 @@ def set_potential_neighbors_and_symbol(matrix_size,
                         # if (y, x, y2, x2) not in pos_pairs:
                         #     # pos_pairs.append((y, x, y2, x2))
                         #     pos_pairs.append((y2, x2, y, x))
-                            # neighborhood_symbol <-> neighborhood
+                        # neighborhood_symbol <-> neighborhood
 
-                            # neighborhood_symbol -> neighborhood &
-                            # neighborhood_symbol <- neighborhood
+                        # neighborhood_symbol -> neighborhood &
+                        # neighborhood_symbol <- neighborhood
 
-                            # -neighborhood_symbol | neighborhood &
-                            # neighborhood_symbol | neighborhood
-                            add_neighborhood_and_symbol_equivalence(
-                                to_append
-                                , vpool
-                                , y
-                                , x
-                                , sequence_index1
-                                , y2
-                                , x2
-                                , sequence_index2
-                                , neighborhood_symbol)
+                        # -neighborhood_symbol | neighborhood &
+                        # neighborhood_symbol | neighborhood
+                        add_neighborhood_and_symbol_equivalence(
+                            to_append
+                            , vpool
+                            , y
+                            , x
+                            , sequence_index1
+                            , y2
+                            , x2
+                            , sequence_index2
+                            , neighborhood_symbol)
 
-                            potential_neighbors_pairs_disjunctions_symbols.append(
-                                neighborhood_symbol)
-                            neighborhood_symbol += 1
+                        potential_neighbors_pairs_disjunctions_symbols.append(
+                            neighborhood_symbol)
+                        neighborhood_symbol += 1
 
-                            # print("x, y, x2, y2", x, y, x2, y2)
-                            # print("sequence_index1, sequence_index2")
-                            # print(sequence_index1, sequence_index2)
-                            # print("neighborhood_symbol",
-                            #       neighborhood_symbol)
+                        # print("x, y, x2, y2", x, y, x2, y2)
+                        # print("sequence_index1, sequence_index2")
+                        # print(sequence_index1, sequence_index2)
+                        # print("neighborhood_symbol",
+                        #       neighborhood_symbol)
     return to_append, neighborhood_symbol
 
 
@@ -193,23 +188,6 @@ def add_neighborhood_and_symbol_equivalence(to_append
                                             , y2
                                             , sequence_index2
                                             , neighborhood_symbol):
-    # to_append.append([vpool.id((y
-    #                             , x
-    #                             , sequence_index1))
-    #                      , -neighborhood_symbol
-    #                      , -vpool.id((y2
-    #                                   , x2
-    #                                   , sequence_index2
-    #                                   ))])
-    # to_append.append([vpool.id((y2
-    #                             , x2
-    #                             , sequence_index2
-    #                             ))
-    #                      , -neighborhood_symbol
-    #                      , -vpool.id((y
-    #                                   , x
-    #                                   , sequence_index1))
-    #                   ])
     to_append.append([-vpool.id(neighborhood_symbol)
                          , vpool.id((y
                                      , x
@@ -368,8 +346,9 @@ def card(cnf
          , X
          , k
          ):
-    print("card()")
-    # print("X=", X, "k=", k)
+    logging.info("card()")
+    logging.debug("X=", X)
+    logging.debug("bound=", k)
 
     # for lit in X:
     # print("lit = ", lit)
@@ -823,7 +802,18 @@ def get_interpretation(solver
     # Otherwise, None is reported.
     # Return type list(int) or None
 
-    return interpretation
+    logging.info("interpretation", interpretation)
+    logging.info("interpretation size", len(interpretation))
+
+    # cette interpretation est longue,
+    # on va filtrer les valeurs positives
+    filtered_interpretation = list(
+        filter(lambda x: x >= 0, interpretation))
+    logging.info("filtered_interpretation", filtered_interpretation)
+    logging.info("filtered_interpretation size", len(filtered_interpretation))
+
+    # return interpretation
+    return filtered_interpretation
 
 
 def exist_sol(seq, bound):
@@ -1134,6 +1124,8 @@ def test_code():
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
 # exist_sol("100010100", 0)
+# exist_sol("0110111001000101", 4)
+# compute_max_score("0110111001000101")
 # compute_max_score("100010100")
 # compute_max_score("000110111")
 # compute_max_score("0011000010")
@@ -1142,11 +1134,12 @@ def test_code():
 # compute_max_score("0011110010110110")
 #
 # compute_max_score("10110011010010001110")
-test_code()
 # dichotomy("011001101")
 # compute_max_score("011001101")
-get_max_contacts("011001101")
-get_max_contacts("11010101011110")
+# get_max_contacts("011001101")
+# get_max_contacts("11010101011110")
+test_code()
+
 
 if test:
     print("Let's test your code")
