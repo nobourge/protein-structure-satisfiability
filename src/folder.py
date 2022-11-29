@@ -168,7 +168,7 @@ def set_potential_neighbors_and_symbol(matrix_size,
                             , neighborhood_symbol)
 
                         potential_neighbors_pairs_disjunctions_symbols.append(
-                            neighborhood_symbol)
+                            vpool.id(neighborhood_symbol))
                         neighborhood_symbol += 1
 
                         # print("x, y, x2, y2", x, y, x2, y2)
@@ -301,32 +301,32 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
             for index2 in potential_neighbors:
                 # index2 different index
                 if index != index2:
-                    # todo if (index - index2) % 2 != 0:  # index and
-                    # index2 are
-                    # separated by a pair
-                    # quantity of elements
+                    if (index - index2) % 2 != 0:  # index and
+                        # index2 are
+                        # separated by a pair
+                        # quantity of elements
 
-                    # potential_neighbors_pairs_disjunctions_symbols \
-                    #     .append(neighborhood_symbol)
+                        # potential_neighbors_pairs_disjunctions_symbols \
+                        #     .append(neighborhood_symbol)
 
-                    # create new set to append neighborhood without
-                    neighborhood_set = {}
+                        # create new set to append neighborhood without
+                        neighborhood_set = {}
 
-                    cnf, neighborhood_symbol = \
-                        set_potential_neighbors_and_symbol(
-                            matrix_size
-                            ,
-                            vpool=vpool
-                            ,
-                            sequence_index1=index
-                            ,
-                            sequence_index2=index2
-                            , to_append=cnf
-                            ,
-                            neighborhood_symbol=neighborhood_symbol
-                            ,
-                            potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
-                        )
+                        cnf, neighborhood_symbol = \
+                            set_potential_neighbors_and_symbol(
+                                matrix_size
+                                ,
+                                vpool=vpool
+                                ,
+                                sequence_index1=index
+                                ,
+                                sequence_index2=index2
+                                , to_append=cnf
+                                ,
+                                neighborhood_symbol=neighborhood_symbol
+                                ,
+                                potential_neighbors_pairs_disjunctions_symbols=potential_neighbors_pairs_disjunctions_symbols
+                            )
         return potential_neighbors_pairs_disjunctions_symbols
     return None
 
@@ -958,7 +958,8 @@ def test_code():
         ('1111', 4),
         ('1111111', 8), ("111111111111111", 22),
         ("1011011011", 7),
-        ("011010111110011", 13), ("01101011111000101", 11),
+        ("011010111110011", 13),
+        ("01101011111000101", 11),
         ("0110111001000101", 8),
         ("000000000111000000110000000", 5), ('100010100', 0),
         ('01101011111110111', 17), ('10', 0), ('10', 0),
