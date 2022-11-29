@@ -52,12 +52,12 @@ def add_neighborhood_and_symbol_equivalence(to_append
     #                                   , x
     #                                   , sequence_index1))
     #                   ])
-    to_append.append([-neighborhood_symbol
+    to_append.append([-vpool.id(neighborhood_symbol)
                          , vpool.id((y
                                      , x
                                      , sequence_index1
                                      ))])
-    to_append.append([-neighborhood_symbol
+    to_append.append([-vpool.id(neighborhood_symbol)
                          , vpool.id((y2
                                      , x2
                                      , sequence_index2
@@ -70,7 +70,7 @@ def add_neighborhood_and_symbol_equivalence(to_append
                                       , x2
                                       , sequence_index2
                                       ))
-                         , neighborhood_symbol])
+                         , vpool.id(neighborhood_symbol)])
     return to_append
 
 

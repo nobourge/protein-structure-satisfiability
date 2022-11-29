@@ -210,25 +210,25 @@ def add_neighborhood_and_symbol_equivalence(to_append
     #                                   , x
     #                                   , sequence_index1))
     #                   ])
-    to_append.append([-neighborhood_symbol
+    to_append.append([-vpool.id(neighborhood_symbol)
                          , vpool.id((y
                                      , x
                                      , sequence_index1
                                      ))])
-    to_append.append([-neighborhood_symbol
+    to_append.append([-vpool.id(neighborhood_symbol)
                          , vpool.id((y2
                                      , x2
                                      , sequence_index2
                                      ))])
-    to_append.append([neighborhood_symbol
-                         , -vpool.id((y
-                                      , x
-                                      , sequence_index1
-                                      ))
+    to_append.append([-vpool.id((y
+                                 , x
+                                 , sequence_index1
+                                 ))
                          , -vpool.id((y2
                                       , x2
                                       , sequence_index2
-                                      ))])
+                                      ))
+                         , vpool.id(neighborhood_symbol)])
     return to_append
 
 
@@ -573,8 +573,8 @@ def get_matrix_size(sequence_length):
     # todo cubic square root of squared sequence_length
     # todo return int(sequence_length ** (2 / 3))
     # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
-    # return math.ceil((1 + sequence_length) / 2)
-    return sequence_length
+    return math.ceil((1 + sequence_length) / 2)
+    # return sequence_length
 
 
 def get_index_matrix(sequence_length
