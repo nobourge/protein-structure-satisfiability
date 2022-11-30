@@ -60,25 +60,52 @@ sys.stdout = AutoIndent(sys.stdout)
 parser = OptionParser()
 parser.add_option("-s", "--sequence", dest="sequence", action="store",
                   help="specify the input sequence")
-parser.add_option("-b", "--bound", dest="bound", action="store",
+parser.add_option("-b", "--bound"
+                  , dest="bound", action="store",
                   help="specify a lower bound on the score", type="int")
-parser.add_option("-p", "--print", dest="display",
+parser.add_option("-p", "--print"
+                  , dest="display",
                   action="store_true",
                   help="print solution", default=False)
-parser.add_option("-i", "--incremental", dest="incremental",
+parser.add_option("-i"
+                  , "--incremental"
+                  , dest="incremental",
                   action="store_true",
                   help="incremental mode: try small bounds first and increment",
                   default=False)
-parser.add_option("-v", "--verbose", dest="verbose",
-                  action="store_true",
-                  help="verbose mode", default=False)
+parser.add_option("-v", "--verbose",
+                  # action="store_true",
+                  action="store_const",
+                  dest="log_level",
+
+                  # dest="verbose",
+                  # dest=["verbose", "log_level"],
+
+                  const=logging.INFO,
+                  help="verbose mode"
+                  # , default=False
+                  )
+parser.add_option("-d", "--debug",
+                  action="store_const",
+                  dest="log_level",
+                  # dest="debug",
+                  # dest=["debug", "log_level"],
+                  const=logging.DEBUG,
+                  help="debug mode", default=False)
 parser.add_option("-t", "--test", dest="test", action="store_true",
                   help="testing mode", default=False)
 
 (options, args) = parser.parse_args()
+print(dir(options))
+logging.basicConfig(level=options.log_level)
+# logging.basicConfig(level=options.loglevel)
+
+#
+# logging.basicConfig(level=logging.DEBUG if options.debug else (
+#     logging.INFO if options.verbose else logging.WARNING))
 
 affichage_sol = options.display
-verb = options.verbose
+verb = options.log_level  # == logging.DEBUG
 incremental = options.incremental
 test = options.test
 
@@ -138,44 +165,48 @@ def set_potential_neighbors_and_symbol(matrix_size,
         for x in range(matrix_size):
             for y2 in range(y - 1, y + 1):
                 for x2 in range(x - 1, x + 1):
-                    if y2 < 0 or y2 >= matrix_size \
-                            or x2 < 0 or x2 >= matrix_size:
-                        continue
-                    # print("i = ", i
-                    #       , "\nj = ", j
-                    #       , "\nk = ", k
-                    #       , "\nl = ", l)
-                    if are_neighbors(y, x, y2, x2):
-                        # if (y, x, y2, x2) not in pos_pairs:
-                        #     # pos_pairs.append((y, x, y2, x2))
-                        #     pos_pairs.append((y2, x2, y, x))
-                        # neighborhood_symbol <-> neighborhood
+                    if 0 <= y2 or y2 < matrix_size \
+                            or 0 <= x2 or x2 < matrix_size:
+                        # print("i = ", i
+                        #       , "\nj = ", j
+                        #       , "\nk = ", k
+                        #       , "\nl = ", l)
+                        if are_neighbors(y, x, y2, x2):
+                            # if (y, x, y2, x2) not in pos_pairs:
+                            #     # pos_pairs.append((y, x, y2, x2))
+                            #     pos_pairs.append((y2, x2, y, x))
+                            # neighborhood_symbol <-> neighborhood
 
-                        # neighborhood_symbol -> neighborhood &
-                        # neighborhood_symbol <- neighborhood
+                            # neighborhood_symbol -> neighborhood &
+                            # neighborhood_symbol <- neighborhood
 
-                        # -neighborhood_symbol | neighborhood &
-                        # neighborhood_symbol | neighborhood
-                        add_neighborhood_and_symbol_equivalence(
-                            to_append
-                            , vpool
-                            , y
-                            , x
-                            , sequence_index1
-                            , y2
-                            , x2
-                            , sequence_index2
-                            , neighborhood_symbol)
+                            # -neighborhood_symbol | neighborhood &
+                            # neighborhood_symbol | neighborhood
+                            vpool_neighborhood_symbol = vpool.id(
+                                neighborhood_symbol)
 
-                        potential_neighbors_pairs_disjunctions_symbols.append(
-                            vpool.id(neighborhood_symbol))
-                        neighborhood_symbol += 1
+                            add_neighborhood_and_symbol_equivalence(
+                                to_append
+                                , vpool
+                                , y
+                                , x
+                                , sequence_index1
+                                , y2
+                                , x2
+                                , sequence_index2
+                                , vpool_neighborhood_symbol)
 
-                        # print("x, y, x2, y2", x, y, x2, y2)
-                        # print("sequence_index1, sequence_index2")
-                        # print(sequence_index1, sequence_index2)
-                        # print("neighborhood_symbol",
-                        #       neighborhood_symbol)
+                            potential_neighbors_pairs_disjunctions_symbols.append(
+                                vpool_neighborhood_symbol)
+                            neighborhood_symbol += 1
+
+                            # logging.debug("x, y, x2, y2", x, y, x2, y2)
+                            # logging.debug(
+                            #     "sequence_index1, sequence_index2")
+                            # logging.debug(sequence_index1,
+                            #               sequence_index2)
+                            # logging.debug("neighborhood_symbol : {"
+                            #               "}".format(neighborhood_symbol))
     return to_append, neighborhood_symbol
 
 
@@ -187,17 +218,20 @@ def add_neighborhood_and_symbol_equivalence(to_append
                                             , x2
                                             , y2
                                             , sequence_index2
-                                            , neighborhood_symbol):
-    to_append.append([-vpool.id(neighborhood_symbol)
+                                            ,
+                                            vpool_neighborhood_symbol):
+    to_append.append([-vpool_neighborhood_symbol
                          , vpool.id((y
                                      , x
                                      , sequence_index1
-                                     ))])
-    to_append.append([-vpool.id(neighborhood_symbol)
+                                     )
+                                    )])
+    to_append.append([-vpool_neighborhood_symbol
                          , vpool.id((y2
                                      , x2
                                      , sequence_index2
-                                     ))])
+                                     )
+                                    )])
     to_append.append([-vpool.id((y
                                  , x
                                  , sequence_index1
@@ -206,7 +240,7 @@ def add_neighborhood_and_symbol_equivalence(to_append
                                       , x2
                                       , sequence_index2
                                       ))
-                         , vpool.id(neighborhood_symbol)])
+                         , vpool_neighborhood_symbol])
     return to_append
 
 
@@ -216,12 +250,7 @@ def sequence_neighboring_maintain(sequence_length
                                   , vpool
                                   , matrix_size
                                   ):
-    print()
-    print("sequence_neighboring_maintain")
-
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
+    logging.info("sequence_neighboring_maintain()")
 
     for i in range(sequence_length - 1):
         cnf = set_neighbors(matrix_size,
@@ -231,8 +260,7 @@ def sequence_neighboring_maintain(sequence_length
                             , to_append=cnf
                             )
 
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
+    logging.info("clauses quantity: {}".format(cnf.nv))
     print()
 
     return cnf
@@ -244,7 +272,7 @@ def sequence_neighboring_maintain(sequence_length
 def are_neighbors(i, j, k, m):
     # retourne True si et seulement si
     # (i, j) et (k, l) sont voisins
-    # print("are_neighbors")
+    # logging.debug("are_neighbors()")
     if (abs(i - k) == 0 and
         abs(j - m) == 1) or \
             (abs(i - k) == 1 and
@@ -259,11 +287,11 @@ def get_sequence_elements_of_value(seq
                                    ):
     potential_neighbors = []
     for index in range(sequence_length):
-        # print("index = ", index)
-        # print("seq[index] = ", seq[index])
-        # print("seq[index] type = ", type(seq[index]))
-        # print("value = ", value)
-        # print("value type = ", type(value))
+        # logging.debug("index = ", index)
+        # logging.debug("seq[index] = ", seq[index])
+        # logging.debug("seq[index] type = ", type(seq[index]))
+        # logging.debug("value = ", value)
+        # logging.debug("value type = ", type(value))
         if int(seq[index]) == value:
             potential_neighbors.append(index)
     return potential_neighbors
@@ -282,15 +310,17 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
     # retourne la liste des voisins potentiels
     # de la sequence seq
 
-    print("get_pairs_potential_neighborings_disjunctions_symbols()")
-    # print("value = ", value)
+    logging.info(
+        "get_pairs_potential_neighborings_disjunctions_symbols()")
+    logging.debug("value = {}".format(value))
     potential_neighbors = get_sequence_elements_of_value(seq
                                                          ,
                                                          sequence_length
                                                          , value)
 
     if 0 < len(potential_neighbors):
-        print("potential_neighbors", potential_neighbors)
+        logging.info(
+            "potential_neighbors {}".format(potential_neighbors))
         # of desired value
         potential_neighbors_pairs_disjunctions_symbols = []
         neighborhood_symbol = 1
@@ -347,8 +377,8 @@ def card(cnf
          , k
          ):
     logging.info("card()")
-    logging.debug("X=", X)
-    logging.debug("bound=", k)
+    logging.debug("X={}".format(X))
+    logging.debug("bound = {}".format(k))
 
     # for lit in X:
     # print("lit = ", lit)
@@ -367,11 +397,7 @@ def all_values_used(sequence_length
                     , matrix_size):
     # print("All values in sequence must be in the answer")
 
-    print("all_values_used()")
-
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
+    logging.info("all_values_used()")
 
     for index in range(sequence_length):
         index_at_positions_disjunction = []
@@ -382,11 +408,7 @@ def all_values_used(sequence_length
                                                                 ,
                                                                 index)))
         cnf.append(index_at_positions_disjunction)
-
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
-
+    logging.info("clauses quantity: {}".format(cnf.nv))
     return cnf
 
 
@@ -396,7 +418,7 @@ def max1location_per_value(sequence_length
                            , cnf
                            , vpool
                            , matrix_size):
-    print("max1location_per_value()")
+    logging.info("max1location_per_value()")
     for index in range(sequence_length):  # take 1 index
         for x in range(matrix_size):
             for y in range(matrix_size):  # take 1 cell
@@ -418,11 +440,7 @@ def max1value_per_location(sequence_length,
                            vpool
                            , matrix_size
                            ):
-    print("max1value_per_location()")
-
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
+    logging.info("max1value_per_location()")
 
     for i in range(matrix_size):
         for j in range(matrix_size):  # parcours tableau
@@ -432,9 +450,7 @@ def max1value_per_location(sequence_length,
                         cnf.append([-vpool.id((i, j, index1)),
                                     -vpool.id((i, j, index2))])
 
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
+    logging.info("clauses quantity: {}".format(cnf.nv))
 
     return cnf
 
@@ -447,7 +463,7 @@ def set_min_cardinality(seq
                         , bound
                         , matrix_size
                         ):
-    print("set_min_cardinality")
+    logging.info("set_min_cardinality()")
     pairs_potential_neighborings_disjunctions_symbols \
         = get_pairs_potential_neighborings_disjunctions_symbols(seq
                                                                 ,
@@ -478,42 +494,25 @@ def set_clauses(seq,
                 , bound
                 , matrix_size
                 ):
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
     all_values_used(sequence_length
                     , cnf
                     , vpool
                     , matrix_size)
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
-
     # sequence elements 2 by 2 are neighbors
     cnf = sequence_neighboring_maintain(sequence_length,
                                         cnf,
                                         vpool
                                         , matrix_size
                                         )
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
     # au plus une valeur par case
     cnf = max1value_per_location(sequence_length
                                  , cnf
                                  , vpool
                                  , matrix_size)
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
     cnf = max1location_per_value(sequence_length
                                  , cnf
                                  , vpool
                                  , matrix_size)
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
-
     cnf = set_min_cardinality(
         seq
         , sequence_length
@@ -523,9 +522,6 @@ def set_clauses(seq,
         , bound=bound
         , matrix_size=matrix_size
     )
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
-    print()
 
     return cnf
 
@@ -549,11 +545,25 @@ def print_solution_variables(seq,
 
 
 def get_matrix_size(sequence_length):
-    # todo cubic square root of squared sequence_length
-    # todo return int(sequence_length ** (2 / 3))
-    # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
-    return math.ceil((1 + sequence_length) / 2)
-    # return sequence_length
+    # returns the minimum size of the matrix within which the maximum
+    # contacts folded sequence can fit
+    # return math.ceil(math.sqrt(sequence_length))  # from github copilot
+
+    # # todo cubic square root of squared sequence_length
+    # # todo return int(sequence_length ** (2 / 3)) # from robin petit
+    # # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
+    return math.ceil((1 + sequence_length) / 2)   # from mkovel
+    # # return sequence_length
+    #
+    # if sequence_length <= 2:
+    #     return sequence_length
+    # elif sequence_length <= 4:
+    #     return 2
+    # elif sequence_length <= 9:
+    #     return 3
+    # elif sequence_length <= 16:
+    #     return 4
+    # elif sequence_length <= 25:
 
 
 def get_index_matrix(sequence_length
@@ -749,8 +759,7 @@ def solve(seq,
                       , bound
                       , matrix_size
                       )
-    txt = "clauses quantity:"
-    print(f'{txt, cnf.nv}')
+    logging.info("clauses quantity: {}".format(cnf.nv))
     print()
     # print("cnf", cnf)
     # print("cnf clauses", cnf.clauses)
@@ -775,8 +784,7 @@ def solve(seq,
         value_matrix = get_value_matrix(index_matrix
                                         , seq
                                         , matrix_size)
-        display = True
-        if display:
+        if affichage_sol:
             print("\nVoici une solution: \n")
 
             print(get_representation(value_matrix
@@ -801,16 +809,18 @@ def get_interpretation(solver
     # A model is provided if a previous SAT call returned True.
     # Otherwise, None is reported.
     # Return type list(int) or None
-
-    logging.info("interpretation", interpretation)
-    logging.info("interpretation size", len(interpretation))
+    logging.debug("interpretation : {}".format(
+        interpretation))
+    logging.debug("interpretation size : {}".format(
+        len(interpretation)))
 
     # cette interpretation est longue,
     # on va filtrer les valeurs positives
     filtered_interpretation = list(
         filter(lambda x: x >= 0, interpretation))
-    logging.info("filtered_interpretation", filtered_interpretation)
-    logging.info("filtered_interpretation size", len(filtered_interpretation))
+    logging.debug("filtered_interpretation : {}".format(
+                  filtered_interpretation))
+    logging.debug("filtered_interpretation size : {}".format(len(filtered_interpretation)))
 
     # return interpretation
     return filtered_interpretation
@@ -877,7 +887,8 @@ def dichotomy(seq
             high_bound = mid_bound
             print("high_bound", high_bound)
 
-    sol = solve(seq, lower_bound - 1)
+    # sol = solve(seq, lower_bound - 1)
+    sol = solve(seq, lower_bound)
     if sol is not None:
         print("dichotomy() sol is not None")
 
@@ -929,12 +940,12 @@ def compute_max_score(seq
     if sol is None:
         return 0
     score_best = get_score(sol)
-
-    if display and score_best is not None:
-        # print("##############################################",solve(seq, score_best))
-        # sol = solve(seq, score_best)
-        # print_solution_matrix(sol, seq)
-        print(get_representation(sol))
+    #
+    # if display and score_best is not None:
+    #     # print("##############################################",solve(seq, score_best))
+    #     # sol = solve(seq, score_best)
+    #     # print_solution_matrix(sol, seq)
+    #     print(get_representation(sol))
 
     print("score_best: ", score_best)
     return score_best
@@ -946,6 +957,7 @@ def compute_max_score(seq
 def test_code():
     satisfiability_echec = []
     unsatisfiability_echec = []
+    max_score_echec = []
 
     examples = [
         ('00', 0),
@@ -956,13 +968,15 @@ def test_code():
         ('11', 1),
         ('111', 2),
         ('1111', 4),
-        ('1111111', 8), ("111111111111111", 22),
+        ('1111111', 8),
+        ("111111111111111", 22),
         ("1011011011", 7),
         ("011010111110011", 13),
         ("01101011111000101", 11),
         ("0110111001000101", 8),
         ("000000000111000000110000000", 5), ('100010100', 0),
-        ('01101011111110111', 17), ('10', 0), ('10', 0),
+        ('01101011111110111', 17),
+        ('10', 0), ('10', 0),
         ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
         ('00111', 2), ('01001', 1),
         ('111010', 3), ('110110', 3), ('0010110', 2),
@@ -1070,6 +1084,7 @@ def test_code():
                 print(" ---> succes")
             else:
                 print(" ---> echec")
+                max_score_echec.append(seq)
         except func_timeout.FunctionTimedOut:
             timeouts_maxscores += 1
             print(" ---> timeout")
@@ -1111,6 +1126,11 @@ def test_code():
     print("Nombre de timeouts: " + str(timeouts_maxscores))
     print("Nombre d'exceptions: " + str(exceptions_maxscores) + "\n")
 
+    print("max_score_echec :")
+    for e in max_score_echec:
+        print(e)
+        print()
+
 
 ##################################################################################################################################################
 ##################################################################################################################################################
@@ -1122,6 +1142,7 @@ def test_code():
 # exist_sol('1', 0)
 # exist_sol('01000', 0)
 # exist_sol("00111", 1)
+compute_max_score("01001")
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
 # exist_sol("100010100", 0)
@@ -1139,8 +1160,7 @@ def test_code():
 # compute_max_score("011001101")
 # get_max_contacts("011001101")
 # get_max_contacts("11010101011110")
-test_code()
-
+# test_code()
 
 if test:
     print("Let's test your code")
@@ -1156,7 +1176,7 @@ elif options.bound is not None:
     res = solve(options.sequence, options.bound)
     if res is not None:
         print("SAT")
-        if options.display: print_solution_matrix(res, options.sequence)
+        # if options.display:
 
     print("FIN DU TEST DE SATISFIABILITE")
 

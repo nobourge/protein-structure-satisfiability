@@ -1,6 +1,9 @@
 from pysat.card import *
 from pysat.formula import CNF
 
+cnf = CNF()
+vpool =
+
 def test():
     print(1)
 
@@ -93,4 +96,6 @@ def test():
     # [6, 7]
 
     print(cnf.clauses)
-test()
+
+
+# test()
