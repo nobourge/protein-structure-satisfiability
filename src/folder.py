@@ -547,12 +547,12 @@ def print_solution_variables(seq,
 def get_matrix_size(sequence_length):
     # returns the minimum size of the matrix within which the maximum
     # contacts folded sequence can fit
-    # return math.ceil(math.sqrt(sequence_length))  # from github copilot
+    return math.ceil(math.sqrt(sequence_length))  # from github copilot
 
     # # todo cubic square root of squared sequence_length
     # # todo return int(sequence_length ** (2 / 3)) # from robin petit
     # # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
-    return math.ceil((1 + sequence_length) / 2)   # from mkovel
+    # return math.ceil((1 + sequence_length) / 2)   # from mkovel
     # # return sequence_length
     #
     # if sequence_length <= 2:
@@ -601,7 +601,7 @@ def get_index_matrix(sequence_length
 def get_value_matrix(matrix
                      , seq
                      , matrix_size):
-    print("get_value_matrix")
+    print("get_value_matrix()")
     print("from matrix:")
     print(matrix)
     # value_matrix = [[0 for i in range(len(matrix))] for j in
@@ -784,7 +784,7 @@ def solve(seq,
         value_matrix = get_value_matrix(index_matrix
                                         , seq
                                         , matrix_size)
-        if affichage_sol:
+        if options.display:
             print("\nVoici une solution: \n")
 
             print(get_representation(value_matrix
@@ -851,6 +851,13 @@ def get_max_contacts(seq: str) -> int:
     for i in range(n - 3):
         if seq[i] != "1":
             continue
+        # for j in range(i + 3, n):
+        #     if seq[j] != "1":
+        #         continue
+        #     total += 1
+        #
+        if seq[i + 1] == "1":
+            total += 1
         total += min(2, seq[i + 3:n:2].count("1"))
     print("total: ", total)
     return total
@@ -958,6 +965,8 @@ def test_code():
     satisfiability_echec = []
     unsatisfiability_echec = []
     max_score_echec = []
+    max_score_timeout = []
+
 
     examples = [
         ('00', 0),
@@ -974,7 +983,8 @@ def test_code():
         ("011010111110011", 13),
         ("01101011111000101", 11),
         ("0110111001000101", 8),
-        ("000000000111000000110000000", 5), ('100010100', 0),
+        ("000000000111000000110000000", 5),
+        ('100010100', 0),
         ('01101011111110111', 17),
         ('10', 0), ('10', 0),
         ('001', 0), ('000', 0), ('1001', 1), ('1111', 4),
@@ -1088,6 +1098,9 @@ def test_code():
         except func_timeout.FunctionTimedOut:
             timeouts_maxscores += 1
             print(" ---> timeout")
+
+            max_score_timeout.append(seq)
+
         except Exception as e:
             exceptions_maxscores += 1
             print(" ---> exception levee")
@@ -1100,12 +1113,11 @@ def test_code():
     print("Nombre de timeouts: " + str(timeouts_sat_tests))
     print("Nombre d'exceptions: " + str(exceptions_sat_tests) + "\n")
 
-    print(
-        "satisfiability_echec :"
-    )
-    for e in satisfiability_echec:
-        print(e)
-        print()
+    if len(satisfiability_echec) > 0:
+        print("Instances avec solutions erroneement repondues: ")
+        for seq in satisfiability_echec:
+            print(seq)
+        print("\n")
 
     print("Instances sans solution correctement repondues: " + str(
         unsat_tests_success) + " sur " + str(
@@ -1113,12 +1125,11 @@ def test_code():
     print("Nombre de timeouts: " + str(timeouts_unsat_tests))
     print("Nombre d'exceptions: " + str(exceptions_unsat_tests) + "\n")
 
-    print(
-        "unsatisfiability_echec :"
-    )
-    for e in unsatisfiability_echec:
-        print(e)
-        print()
+    if len(unsatisfiability_echec) > 0:
+        print("Instances sans solution erroneement repondues: ")
+        for seq in unsatisfiability_echec:
+            print(seq)
+        print("\n")
 
     print("Meilleurs scores correctement calcules: " + str(
         correct_maxscores) + " sur " + str(
@@ -1126,10 +1137,17 @@ def test_code():
     print("Nombre de timeouts: " + str(timeouts_maxscores))
     print("Nombre d'exceptions: " + str(exceptions_maxscores) + "\n")
 
-    print("max_score_echec :")
-    for e in max_score_echec:
-        print(e)
-        print()
+    if len(max_score_echec) > 0:
+        print("Meilleurs scores erronement calcules: ")
+        for seq in max_score_echec:
+            print(seq)
+        print("\n")
+
+    if len(max_score_timeout) > 0:
+        print("Meilleurs scores non calcules a cause de timeout: ")
+        for seq in max_score_timeout:
+            print(seq)
+        print("\n")
 
 
 ##################################################################################################################################################
@@ -1142,11 +1160,13 @@ def test_code():
 # exist_sol('1', 0)
 # exist_sol('01000', 0)
 # exist_sol("00111", 1)
+# compute_max_score("110110")
 # compute_max_score("01001")
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
 # exist_sol("100010100", 0)
 # exist_sol("0110111001000101", 4)
+# exist_sol("111111111111111", 23)
 # compute_max_score("0110111001000101")
 # compute_max_score("100010100")
 # compute_max_score("000110111")
