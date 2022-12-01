@@ -165,8 +165,8 @@ def set_potential_neighbors_and_symbol(matrix_size,
         for x in range(matrix_size):
             for y2 in range(y - 1, y + 1):
                 for x2 in range(x - 1, x + 1):
-                    if 0 <= y2 or y2 < matrix_size \
-                            or 0 <= x2 or x2 < matrix_size:
+                    if 0 <= y2 and y2 < matrix_size \
+                            and 0 <= x2 and x2 < matrix_size:
                         # print("i = ", i
                         #       , "\nj = ", j
                         #       , "\nk = ", k
@@ -1142,7 +1142,7 @@ def test_code():
 # exist_sol('1', 0)
 # exist_sol('01000', 0)
 # exist_sol("00111", 1)
-compute_max_score("01001")
+# compute_max_score("01001")
 # compute_max_score("00110000")
 # compute_max_score("000000000111000000110000000")
 # exist_sol("100010100", 0)
@@ -1160,7 +1160,7 @@ compute_max_score("01001")
 # compute_max_score("011001101")
 # get_max_contacts("011001101")
 # get_max_contacts("11010101011110")
-# test_code()
+test_code()
 
 if test:
     print("Let's test your code")
