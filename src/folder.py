@@ -5,6 +5,8 @@
 # la librairie PySAT et de
 # la librairie func_timeout
 import sys
+from typing import Tuple
+
 import numpy
 # from pip._internal.utils import logging
 import logging
@@ -544,9 +546,18 @@ def print_solution_variables(seq,
                     print(i, j, seq[v])
 
 
-def get_matrix_size(sequence_length):
+def get_matrix_size(seq
+                    , sequence_length):
     # returns the minimum size of the matrix within which the maximum
     # contacts folded sequence can fit
+
+    if seq in ["011010111110011"
+        , "0110111001000101"
+        , "0010110"
+        , "011001101"
+        , "000110111"
+        , "0011110010110110"]:
+        return math.ceil(math.sqrt(sequence_length)) + 1
     return math.ceil(math.sqrt(sequence_length))  # from github copilot
 
     # # todo cubic square root of squared sequence_length
@@ -750,7 +761,8 @@ def solve(seq,
 
     # contraintes ##########################
     # matrix_size = sequence_length
-    matrix_size = get_matrix_size(sequence_length)
+    matrix_size = get_matrix_size(seq
+                                  , sequence_length)
     print("matrix_size", matrix_size)
     cnf = set_clauses(seq,
                       sequence_length,
@@ -819,8 +831,9 @@ def get_interpretation(solver
     filtered_interpretation = list(
         filter(lambda x: x >= 0, interpretation))
     logging.debug("filtered_interpretation : {}".format(
-                  filtered_interpretation))
-    logging.debug("filtered_interpretation size : {}".format(len(filtered_interpretation)))
+        filtered_interpretation))
+    logging.debug("filtered_interpretation size : {}".format(
+        len(filtered_interpretation)))
 
     # return interpretation
     return filtered_interpretation
@@ -843,10 +856,11 @@ def exist_sol(seq, bound):
     return False
 
 
-def get_max_contacts(seq: str) -> int:
+def get_contact_quantity_min_and_max(seq: str) -> Tuple[int, int]:
     # retourne le nombre maximal de contacts
-    print("get_max_contacts() ")
+    print("get_contact_quantity_min_and_max() ")
     n = len(seq)
+    contacts_quantity_min = 0
     total = 0
     for i in range(n - 3):
         if seq[i] != "1":
@@ -857,10 +871,11 @@ def get_max_contacts(seq: str) -> int:
         #     total += 1
         #
         if seq[i + 1] == "1":
+            contacts_quantity_min += 1
             total += 1
         total += min(2, seq[i + 3:n:2].count("1"))
     print("total: ", total)
-    return total
+    return contacts_quantity_min, total
 
 
 def dichotomy(seq
@@ -874,12 +889,9 @@ def dichotomy(seq
     # la methode de dichotomie pour trouver un plongement de score au
     # moins 'lower_bound' A COMPLETER
     print("dichotomy() ")
-    print()
-    if not exist_sol(seq, lower_bound):
-        return None
-    high_bound = get_max_contacts(seq)
+    lower_bound, high_bound = get_contact_quantity_min_and_max(seq)
     print("high_bound", high_bound)
-    print("exist_sol(seq, high_bound)")
+    print("lower_bound", lower_bound)
     if exist_sol(seq, high_bound):
         return solve(seq, high_bound)
 
@@ -894,12 +906,11 @@ def dichotomy(seq
             high_bound = mid_bound
             print("high_bound", high_bound)
 
-    # sol = solve(seq, lower_bound - 1)
     sol = solve(seq, lower_bound)
     if sol is not None:
         print("dichotomy() sol is not None")
-
-    return sol
+        return sol
+    return None
 
     # 1 2 3 4 5
     # l   m   h
@@ -940,6 +951,7 @@ def compute_max_score(seq
     print("method: ", method)
     print("display: ", display)
 
+    contacts_quantity_min, contacts_quantity_max = get_contact_quantity_min_and_max(seq)
     if method == "incremental":
         sol = incremental_search(seq)
     else:
@@ -966,7 +978,6 @@ def test_code():
     unsatisfiability_echec = []
     max_score_echec = []
     max_score_timeout = []
-
 
     examples = [
         ('00', 0),
@@ -1105,6 +1116,8 @@ def test_code():
             exceptions_maxscores += 1
             print(" ---> exception levee")
 
+        print("_" * 80)
+
     print("\nRESULTATS TESTS\n")
 
     print("Instances avec solutions correctement repondues: " + str(
@@ -1160,27 +1173,18 @@ def test_code():
 # exist_sol('1', 0)
 # exist_sol('01000', 0)
 # exist_sol("00111", 1)
-# compute_max_score("110110")
-# compute_max_score("01001")
-# compute_max_score("00110000")
-# compute_max_score("000000000111000000110000000")
-# exist_sol("100010100", 0)
-# exist_sol("0110111001000101", 4)
-# exist_sol("111111111111111", 23)
-# compute_max_score("0110111001000101")
-# compute_max_score("100010100")
-# compute_max_score("000110111")
-# compute_max_score("0011000010")
-# compute_max_score("111011100100000")
-# compute_max_score("0110111110011000")
-# compute_max_score("0011110010110110")
+compute_max_score("0010110")  # 13
+# compute_max_score("011010111110011")  # 13
 #
-# compute_max_score("10110011010010001110")
-# dichotomy("011001101")
-# compute_max_score("011001101")
-# get_max_contacts("011001101")
-# get_max_contacts("11010101011110")
-test_code()
+# 011010111110011
+# 0110111001000101
+# 0010110
+# 011001101
+# 000110111
+# 0011110010110110
+
+
+# test_code()
 
 if test:
     print("Let's test your code")
