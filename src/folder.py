@@ -1186,10 +1186,11 @@ elif not incremental:
     #   on affiche egalement un plongement de score maximal
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR DICHOTOMIE")
     if len(sys.argv) > 1:
-        print(
-            "Calcul du meilleur score pour la sequence " + options.sequence)
-        compute_max_score(options.sequence, "dichotomy",
-                          options.display)
+        if options.sequence is not None:
+            print(
+                "Calcul du meilleur score pour la sequence " + options.sequence)
+            compute_max_score(options.sequence, "dichotomy",
+                              options.display)
     print("FIN DU CALCUL DU MEILLEUR SCORE")
 
 elif not test:
