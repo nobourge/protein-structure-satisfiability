@@ -862,7 +862,8 @@ def get_contact_quantity_min_and_max(seq: str) -> Tuple[int, int]:
     n = len(seq)
     contacts_quantity_min = 0
     total = 0
-    for i in range(n - 3):
+    for i in range(n):
+        print("i : ", i)
         if seq[i] != "1":
             continue
         # for j in range(i + 3, n):
@@ -870,10 +871,15 @@ def get_contact_quantity_min_and_max(seq: str) -> Tuple[int, int]:
         #         continue
         #     total += 1
         #
-        if seq[i + 1] == "1":
-            contacts_quantity_min += 1
-            total += 1
-        total += min(2, seq[i + 3:n:2].count("1"))
+        if i + 1 < n:
+            if seq[i + 1] == "1":
+                contacts_quantity_min += 1
+                total += 1
+            if i + 3 < n:
+                total += min(2, seq[i + 3:n:2].count("1"))
+                print("seq[i + 3:n:2].count(\"1\") : ", seq[i + 3:n:2].count("1"))
+        print("contacts_quantity_min : ", contacts_quantity_min)
+        print("total : ", total)
     print("total: ", total)
     return contacts_quantity_min, total
 
@@ -976,8 +982,10 @@ def compute_max_score(seq
 def test_code():
     satisfiability_echec = []
     unsatisfiability_echec = []
+    unsatisfiability_exception = []
     max_score_echec = []
     max_score_timeout = []
+    max_score_exception = []
 
     examples = [
         ('00', 0),
@@ -1087,6 +1095,7 @@ def test_code():
         except Exception as e:
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
+            unsatisfiability_exception.append(seq)
 
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
@@ -1115,6 +1124,7 @@ def test_code():
         except Exception as e:
             exceptions_maxscores += 1
             print(" ---> exception levee")
+            max_score_exception.append(seq)
 
         print("_" * 80)
 
@@ -1144,6 +1154,12 @@ def test_code():
             print(seq)
         print("\n")
 
+    if len(unsatisfiability_exception) > 0:
+        print("Instances sans solution avec exception levee: ")
+        for seq in unsatisfiability_exception:
+            print(seq)
+        print("\n")
+
     print("Meilleurs scores correctement calcules: " + str(
         correct_maxscores) + " sur " + str(
         total_maxscores) + " tests realises")
@@ -1162,6 +1178,12 @@ def test_code():
             print(seq)
         print("\n")
 
+    if len(max_score_exception) > 0:
+        print("Meilleurs scores non calcules a cause d'exceptions: ")
+        for seq in max_score_exception:
+            print(seq)
+        print("\n")
+
 
 ##################################################################################################################################################
 ##################################################################################################################################################
@@ -1173,8 +1195,9 @@ def test_code():
 # exist_sol('1', 0)
 # exist_sol('01000', 0)
 # exist_sol("00111", 1)
-compute_max_score("0010110")  # 13
+# compute_max_score("0010110")  # 2
 # compute_max_score("011010111110011")  # 13
+# compute_max_score("1")  #
 #
 # 011010111110011
 # 0110111001000101
@@ -1184,7 +1207,7 @@ compute_max_score("0010110")  # 13
 # 0011110010110110
 
 
-# test_code()
+test_code()
 
 if test:
     print("Let's test your code")
