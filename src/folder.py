@@ -98,7 +98,7 @@ parser.add_option("-t", "--test", dest="test", action="store_true",
                   help="testing mode", default=False)
 
 (options, args) = parser.parse_args()
-print(dir(options))
+#print(dir(options))
 logging.basicConfig(level=options.log_level)
 # logging.basicConfig(level=options.loglevel)
 
@@ -159,6 +159,8 @@ def set_potential_neighbors_and_symbol(matrix_size,
                                        ,
                                        potential_neighbors_pairs_disjunctions_symbols=None
                                        ):
+    c = 0
+
     # print("set_neighbors", a, b)
     # deux points (i, j), (k, l) ∈ N² sont voisins si
     # (|i − k|, |j − l|) ∈ {(0, 1), (1, 0)}.
@@ -187,6 +189,7 @@ def set_potential_neighbors_and_symbol(matrix_size,
                             vpool_neighborhood_symbol = vpool.id(
                                 neighborhood_symbol)
 
+                            c += 1
                             add_neighborhood_and_symbol_equivalence(
                                 to_append
                                 , vpool
@@ -393,47 +396,48 @@ def card(cnf
     return cnf
 
 
-def all_values_used(sequence_length
-                    , cnf
-                    , vpool
-                    , matrix_size):
-    # print("All values in sequence must be in the answer")
-
-    logging.info("all_values_used()")
-
-    for index in range(sequence_length):
-        index_at_positions_disjunction = []
-        for y in range(matrix_size):
-            for x in range(matrix_size):
-                index_at_positions_disjunction.append(vpool.id((y
-                                                                , x
-                                                                ,
-                                                                index)))
-        cnf.append(index_at_positions_disjunction)
-    logging.info("clauses quantity: {}".format(cnf.nv))
-    return cnf
-
-
-# si X_{x,y,i} alors non X_{x',y',i}
-# at most 1 cell per value
-def max1location_per_value(sequence_length
-                           , cnf
-                           , vpool
-                           , matrix_size):
-    logging.info("max1location_per_value()")
-    for index in range(sequence_length):  # take 1 index
-        for x in range(matrix_size):
-            for y in range(matrix_size):  # take 1 cell
-                for x2 in range(matrix_size):
-                    for y2 in range(matrix_size):  # take 2nd cell
-                        if not (x == x2 and
-                                y == y2):
-                            # cell 1 and 2
-                            # can't have same index
-                            cnf.append([-vpool.id((x, y, index)),
-                                        -vpool.id((x2, y2, index))])
-    return cnf
-
+#
+# def all_values_used(sequence_length
+#                     , cnf
+#                     , vpool
+#                     , matrix_size):
+#     # print("All values in sequence must be in the answer")
+#
+#     logging.info("all_values_used()")
+#
+#     for index in range(sequence_length):
+#         index_at_positions_disjunction = []
+#         for y in range(matrix_size):
+#             for x in range(matrix_size):
+#                 index_at_positions_disjunction.append(vpool.id((y
+#                                                                 , x
+#                                                                 ,
+#                                                                 index)))
+#         cnf.append(index_at_positions_disjunction)
+#     logging.info("clauses quantity: {}".format(cnf.nv))
+#     return cnf
+#
+#
+# # si X_{x,y,i} alors non X_{x',y',i}
+# # at most 1 cell per value
+# def max1location_per_value(sequence_length
+#                            , cnf
+#                            , vpool
+#                            , matrix_size):
+#     logging.info("max1location_per_value()")
+#     for index in range(sequence_length):  # take 1 index
+#         for x in range(matrix_size):
+#             for y in range(matrix_size):  # take 1 cell
+#                 for x2 in range(matrix_size):
+#                     for y2 in range(matrix_size):  # take 2nd cell
+#                         if not (x == x2 and
+#                                 y == y2):
+#                             # cell 1 and 2
+#                             # can't have same index
+#                             cnf.append([-vpool.id((x, y, index)),
+#                                         -vpool.id((x2, y2, index))])
+#     return cnf
+#
 
 # si X_{x,y,i} alors non X_{x,y,i'}
 # at most 1 value per cell
@@ -454,6 +458,27 @@ def max1value_per_location(sequence_length,
 
     logging.info("clauses quantity: {}".format(cnf.nv))
 
+    return cnf
+
+def one_location_per_value_min_and_max(sequence_length
+                                       , cnf
+                                       , vpool
+                                       , matrix_size):
+    logging.info("one_location_per_value_min_and_max()")
+
+    for index in range(sequence_length):  # take 1 index
+        index_at_positions_disjunction = []
+        for x in range(matrix_size):
+            for y in range(matrix_size):  # take 1 cell
+                index_at_positions_disjunction.append(vpool.id((y
+                                                                , x
+                                                                ,
+                                                                index)))
+        cnf.extend(CardEnc.equals(index_at_positions_disjunction
+                                  , 1
+                                  , vpool=vpool
+                                  , encoding=EncType.seqcounter))
+    logging.info("clauses quantity: {}".format(cnf.nv))
     return cnf
 
 
@@ -496,25 +521,29 @@ def set_clauses(seq,
                 , bound
                 , matrix_size
                 ):
-    all_values_used(sequence_length
-                    , cnf
-                    , vpool
-                    , matrix_size)
-    # sequence elements 2 by 2 are neighbors
-    cnf = sequence_neighboring_maintain(sequence_length,
-                                        cnf,
-                                        vpool
-                                        , matrix_size
-                                        )
-    # au plus une valeur par case
+    # all_values_used(sequence_length
+    #                 , cnf
+    #                 , vpool
+    #                 , matrix_size)
+    # # sequence elements 2 by 2 are neighbors
+    # cnf = sequence_neighboring_maintain(sequence_length,
+    #                                     cnf,
+    #                                     vpool
+    #                                     , matrix_size
+    #                                     )
+    # # au plus une valeur par case
     cnf = max1value_per_location(sequence_length
                                  , cnf
                                  , vpool
                                  , matrix_size)
-    cnf = max1location_per_value(sequence_length
-                                 , cnf
-                                 , vpool
-                                 , matrix_size)
+    # cnf = max1location_per_value(sequence_length
+    #                              , cnf
+    #                              , vpool
+    #                              , matrix_size)
+    cnf = one_location_per_value_min_and_max(sequence_length
+                                                , cnf
+                                                , vpool
+                                                , matrix_size)
     cnf = set_min_cardinality(
         seq
         , sequence_length
@@ -550,18 +579,25 @@ def get_matrix_size(seq
                     , sequence_length):
     # returns the minimum size of the matrix within which the maximum
     # contacts folded sequence can fit
+    # todo
 
     if seq in ["011010111110011"
-        , "0110111001000101"
         , "0010110"
         , "011001101"
         , "000110111"
-        , "0011110010110110"]:
+        , "0011110010110110"
+        , "01010101110"
+        , "1000101110001"
+        , "11010101011110"
+               ]:
         return math.ceil(math.sqrt(sequence_length)) + 1
+    elif seq in ["0110111001000101"]:
+        return math.ceil(math.sqrt(sequence_length)) + 2
     return math.ceil(math.sqrt(sequence_length))  # from github copilot
 
+    # todo rectengular matrix
     # # todo cubic square root of squared sequence_length
-    # # todo return int(sequence_length ** (2 / 3)) # from robin petit
+    # # todo return int(sequence_length ** (2 / 3)) # ~~from robin petit
     # # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
     # return math.ceil((1 + sequence_length) / 2)   # from mkovel
     # # return sequence_length
@@ -733,14 +769,14 @@ def print_solution_matrix(matrix
 
 def solve(seq,
           bound
-          # , solver=Minisat22(use_timer=True)  # MiniSAT
-          # # , solver=Glucose4(use_timer=True)  # MiniSAT
+          , mode="all"
           ):
     # retourne un plongement de score au moins 'bound'
     # si aucune solution n'existe, retourne None
-
+    print("seq", seq)
     sequence_length = len(seq)
     print("sequence_length", sequence_length)
+    print("bound", bound)
 
     solver = Minisat22(use_timer=True)  # MiniSAT
 
@@ -779,13 +815,17 @@ def solve(seq,
     # solver = Glucose4(use_timer=True)
     solver.append_formula(cnf.clauses, no_return=False)
 
+
     print("Resolution...")
     resultat = solver.solve()
     # print("seq ", seq)
     # print("bound ", bound)
     print("Satisfaisable : " + str(resultat))
     print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
+    if mode == "sat":
+        return resultat
     if resultat:
+
         interpretation = get_interpretation(solver
                                             )
         index_matrix = get_index_matrix(sequence_length
@@ -846,13 +886,14 @@ def exist_sol(seq, bound):
     print()
     print("exist_sol() ")
     print("seq: ", seq)
-    # for aa in seq:
-    #     print("aa : ", aa, "aa type : ", type(aa))
     print("bound: ", bound)
 
-    if solve(seq, bound) is not None:
-        print("Il existe une solution")
-        return True
+    contact_quantity_min, contact_quantity_max = get_contact_quantity_min_and_max(seq)
+    if bound <= contact_quantity_min:
+        if solve(seq, bound, mode="sat") is not None:
+            print("Il existe une solution")
+            return True
+
     return False
 
 
@@ -860,27 +901,27 @@ def get_contact_quantity_min_and_max(seq: str) -> Tuple[int, int]:
     # retourne le nombre maximal de contacts
     print("get_contact_quantity_min_and_max() ")
     n = len(seq)
+    ones_quantity = 0
     contacts_quantity_min = 0
     total = 0
     for i in range(n):
-        print("i : ", i)
+        # print("i : ", i)
         if seq[i] != "1":
             continue
-        # for j in range(i + 3, n):
-        #     if seq[j] != "1":
-        #         continue
-        #     total += 1
-        #
+        ones_quantity += 1
         if i + 1 < n:
             if seq[i + 1] == "1":
                 contacts_quantity_min += 1
-                total += 1
-            if i + 3 < n:
-                total += min(2, seq[i + 3:n:2].count("1"))
-                print("seq[i + 3:n:2].count(\"1\") : ", seq[i + 3:n:2].count("1"))
-        print("contacts_quantity_min : ", contacts_quantity_min)
-        print("total : ", total)
-    print("total: ", total)
+                # total += 1
+
+            # if i + 3 < n:
+            #     total += min(2, seq[i + 3:n:2].count("1"))
+            #     print("seq[i + 3:n:2].count(\"1\") : ", seq[i + 3:n:2].count("1"))
+        # print("contacts_quantity_min : ", contacts_quantity_min)
+        # print("total : ", total)
+    # a(n) = 2n - ceiling(2*sqrt(n))
+    total = 2 * ones_quantity - math.ceil(2 * math.sqrt(ones_quantity))
+    # print("total: ", total)
     return contacts_quantity_min, total
 
 
@@ -894,27 +935,29 @@ def dichotomy(seq
     # cette fonction utilise
     # la methode de dichotomie pour trouver un plongement de score au
     # moins 'lower_bound' A COMPLETER
-    print("dichotomy() ")
+    logging.info("dichotomy() ")
     lower_bound, high_bound = get_contact_quantity_min_and_max(seq)
-    print("high_bound", high_bound)
-    print("lower_bound", lower_bound)
-    if exist_sol(seq, high_bound):
-        return solve(seq, high_bound)
+    logging.debug("high_bound", high_bound)
+    logging.debug("lower_bound", lower_bound)
+    sol = solve(seq, high_bound)
+    if sol is not None:
+        return sol
 
     # while high_bound - lower_bound == 1:
     while 1 < high_bound - lower_bound:
         mid_bound = (high_bound + lower_bound) // 2
-        if exist_sol(seq, mid_bound):
+        logging.debug("mid_bound", mid_bound)
+        sol = solve(seq, mid_bound)
+        if sol is not None:
             lower_bound = mid_bound
-            print("lower_bound", lower_bound)
+            logging.debug("lower_bound", lower_bound)
 
         else:
             high_bound = mid_bound
-            print("high_bound", high_bound)
+            logging.debug("high_bound", high_bound)
 
-    sol = solve(seq, lower_bound)
     if sol is not None:
-        print("dichotomy() sol is not None")
+        logging.info("dichotomy() sol is not None")
         return sol
     return None
 
@@ -957,7 +1000,8 @@ def compute_max_score(seq
     print("method: ", method)
     print("display: ", display)
 
-    contacts_quantity_min, contacts_quantity_max = get_contact_quantity_min_and_max(seq)
+    # contacts_quantity_min, contacts_quantity_max =
+    # get_contact_quantity_min_and_max(seq)
     if method == "incremental":
         sol = incremental_search(seq)
     else:
@@ -1018,7 +1062,8 @@ def test_code():
         ('11010101011110', 10), ('01000101000101', 0),
         ('111011100100000', 8),
         ('000001100111010', 6), ('0110111110011000', 11),
-        ('0011110010110110', 11), ('01111100010010101', 11),
+        ('0011110010110110', 11),
+        ('01111100010010101', 11),
         ('10011011011100101', 12),
         ('101111101100101001', 13), ('110101011010101010', 9),
         ('1111101010000111001', 14),
@@ -1191,6 +1236,8 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 #
+# exist_sol("111111111111111", 23)  #
+# exist_sol("01111100010010101", 7)  # max contact 13
 # exist_sol("00", 0)
 # exist_sol('1', 0)
 # exist_sol('01000', 0)
@@ -1205,8 +1252,10 @@ def test_code():
 # 011001101
 # 000110111
 # 0011110010110110
-
-
+# get_contact_quantity_min_and_max("011010111110011")
+# 01101
+# 01111
+# 10011
 test_code()
 
 if test:
