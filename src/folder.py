@@ -324,6 +324,8 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
                                                          , value)
 
     if 0 < len(potential_neighbors):
+        # print("potential_neighbors = ", potential_neighbors)
+        # logging.debug("potential_neighbors = {}".format(potential_neighbors))
         logging.info(
             "potential_neighbors {}".format(potential_neighbors))
         # of desired value
@@ -525,12 +527,12 @@ def set_clauses(seq,
     #                 , cnf
     #                 , vpool
     #                 , matrix_size)
-    # # sequence elements 2 by 2 are neighbors
-    # cnf = sequence_neighboring_maintain(sequence_length,
-    #                                     cnf,
-    #                                     vpool
-    #                                     , matrix_size
-    #                                     )
+    # sequence elements 2 by 2 are neighbors
+    cnf = sequence_neighboring_maintain(sequence_length,
+                                        cnf,
+                                        vpool
+                                        , matrix_size
+                                        )
     # # au plus une valeur par case
     cnf = max1value_per_location(sequence_length
                                  , cnf
@@ -600,17 +602,6 @@ def get_matrix_size(seq
     # # todo return int(sequence_length ** (2 / 3)) # ~~from robin petit
     # # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
     # return math.ceil((1 + sequence_length) / 2)   # from mkovel
-    # # return sequence_length
-    #
-    # if sequence_length <= 2:
-    #     return sequence_length
-    # elif sequence_length <= 4:
-    #     return 2
-    # elif sequence_length <= 9:
-    #     return 3
-    # elif sequence_length <= 16:
-    #     return 4
-    # elif sequence_length <= 25:
 
 
 def get_index_matrix(sequence_length
@@ -777,6 +768,16 @@ def solve(seq,
     sequence_length = len(seq)
     print("sequence_length", sequence_length)
     print("bound", bound)
+    print("mode", mode)
+
+
+    contact_quantity_min, contact_quantity_max = get_contact_quantity_min_and_max(seq)
+    if contact_quantity_max < bound:
+        print("bound <= contact_quantity_max")
+        print(bound, "<=", contact_quantity_max)
+
+        print("Il n'existe pas de solution")
+        return None
 
     solver = Minisat22(use_timer=True)  # MiniSAT
 
@@ -796,7 +797,6 @@ def solve(seq,
     cnf = CNF()  # construction d'un objet formule en forme normale conjonctive (Conjunctive Normal Form)
 
     # contraintes ##########################
-    # matrix_size = sequence_length
     matrix_size = get_matrix_size(seq
                                   , sequence_length)
     print("matrix_size", matrix_size)
@@ -822,10 +822,10 @@ def solve(seq,
     # print("bound ", bound)
     print("Satisfaisable : " + str(resultat))
     print("Temps de resolution : " + '{0:.2f}s'.format(solver.time()))
-    if mode == "sat":
-        return resultat
-    if resultat:
 
+    if resultat:
+        if mode == "sat":
+            return True
         interpretation = get_interpretation(solver
                                             )
         index_matrix = get_index_matrix(sequence_length
@@ -888,11 +888,9 @@ def exist_sol(seq, bound):
     print("seq: ", seq)
     print("bound: ", bound)
 
-    contact_quantity_min, contact_quantity_max = get_contact_quantity_min_and_max(seq)
-    if bound <= contact_quantity_min:
-        if solve(seq, bound, mode="sat") is not None:
-            print("Il existe une solution")
-            return True
+    if solve(seq, bound, mode="sat") is not None:
+        print("Il existe une solution")
+        return True
 
     return False
 
@@ -901,28 +899,41 @@ def get_contact_quantity_min_and_max(seq: str) -> Tuple[int, int]:
     # retourne le nombre maximal de contacts
     print("get_contact_quantity_min_and_max() ")
     n = len(seq)
-    ones_quantity = 0
+    # count ones in seq
+    ones_quantity = seq.count("1")
+    if ones_quantity == 0:
+        return 0, 0
+
+    # a(n) = 2n - ceiling(2*sqrt(n))
+    contacts_quantity_max = 2 * ones_quantity - math.ceil(
+        2 * math.sqrt(ones_quantity))
+
+    #original sequence quantity of ones already in contact
     contacts_quantity_min = 0
     total = 0
     for i in range(n):
         # print("i : ", i)
-        if seq[i] != "1":
-            continue
-        ones_quantity += 1
-        if i + 1 < n:
-            if seq[i + 1] == "1":
-                contacts_quantity_min += 1
-                # total += 1
+        if seq[i] == "1":
+            if i + 1 < n:
+                if seq[i + 1] == "1":
+                    contacts_quantity_min += 1
+                    total += 1
 
-            # if i + 3 < n:
-            #     total += min(2, seq[i + 3:n:2].count("1"))
+            if i + 3 < n:
+                total += min(2, seq[i + 3:n:2].count("1"))
             #     print("seq[i + 3:n:2].count(\"1\") : ", seq[i + 3:n:2].count("1"))
         # print("contacts_quantity_min : ", contacts_quantity_min)
         # print("total : ", total)
-    # a(n) = 2n - ceiling(2*sqrt(n))
-    total = 2 * ones_quantity - math.ceil(2 * math.sqrt(ones_quantity))
-    # print("total: ", total)
-    return contacts_quantity_min, total
+
+    print("contacts_quantity_min : ", contacts_quantity_min)
+    print("total : ", total)
+    print("contacts_quantity_max : ",
+          contacts_quantity_max)
+
+    if total < contacts_quantity_max:
+        contacts_quantity_max = total
+    print("contacts_quantity_max : ",contacts_quantity_max)
+    return contacts_quantity_min, contacts_quantity_max
 
 
 def dichotomy(seq
@@ -947,8 +958,9 @@ def dichotomy(seq
     while 1 < high_bound - lower_bound:
         mid_bound = (high_bound + lower_bound) // 2
         logging.debug("mid_bound", mid_bound)
-        sol = solve(seq, mid_bound)
-        if sol is not None:
+        new_sol = solve(seq, mid_bound)
+        if new_sol is not None:
+            sol = new_sol
             lower_bound = mid_bound
             logging.debug("lower_bound", lower_bound)
 
@@ -1256,6 +1268,10 @@ def test_code():
 # 01101
 # 01111
 # 10011
+# exist_sol("100010100", 1)
+# solve("100010100", 1)
+# exist_sol("01000101000101", 1)
+# solve("01000101000101", 1)
 test_code()
 
 if test:
