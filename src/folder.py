@@ -19,7 +19,7 @@ from optparse import OptionParser
 import func_timeout
 
 from auto_indent import *
-from colorama import Fore, Style
+#from colorama import Fore, Style
 
 sys.stdout = AutoIndent(sys.stdout)
 
@@ -983,7 +983,7 @@ def incremental_search(seq
     # pour trouver un plongement de score au moins 'lower_bound'
     sol = solve(seq, lower_bound)
 
-    while sol:
+    while sol is not None:
         lower_bound += 1
         sol = solve(seq, lower_bound)
     if sol is not None:
@@ -1269,9 +1269,9 @@ def test_code():
 # exist_sol("01010101110")  # 2
 # compute_max_score("01010101110")  # 2
 # compute_max_score("000110111")  # 2
-compute_max_score("000110111")  # 2
+# compute_max_score("000110111")  # 2
 
-test_code()
+# test_code()
 
 if test:
     print("Let's test your code")
