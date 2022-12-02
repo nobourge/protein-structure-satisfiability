@@ -207,7 +207,7 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
         # index2 = 7
         # cnf, neighborhood_symbol = \
         #     set_potential_neighbors_and_symbol(
-        #         matrix_size
+        #         matrix_dimensions
         #         ,
         #         vpool=vpool
         #         ,
@@ -224,7 +224,7 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
         # index2 = 5
         # cnf, neighborhood_symbol = \
         #     set_potential_neighbors_and_symbol(
-        #         matrix_size
+        #         matrix_dimensions
         #         ,
         #         vpool=vpool
         #         ,
@@ -241,7 +241,7 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
         # index2 = 6
         # cnf, neighborhood_symbol = \
         #     set_potential_neighbors_and_symbol(
-        #         matrix_size
+        #         matrix_dimensions
         #         ,
         #         vpool=vpool
         #         ,
@@ -324,7 +324,7 @@ def get_index_matrix(sequence_length
                      , vpool
                      , sol):
     print("sequence_length", sequence_length)
-    print("matrix_size", matrix_size)
+    print("matrix_dimensions", matrix_size)
     matrix = numpy.matrix(numpy.zeros(shape=(matrix_size, matrix_size)))
     # matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
     # print("sequence_length", sequence_length)
@@ -397,8 +397,8 @@ def get_representation(value_matrix
             # representation += str(value_matrix[i][j])
     # representation_colored = numpy.vectorize(get_color_coded_str)(
     #     value_matrix)
-    # print("\n".join([" ".join(["{}"] * matrix_size-1)] *
-    #                 matrix_size-1).format(*[x for y in
+    # print("\n".join([" ".join(["{}"] * matrix_dimensions-1)] *
+    #                 matrix_dimensions-1).format(*[x for y in
     #                                        representation_colored for x in y]))
 
     return representation
@@ -434,13 +434,13 @@ def max1value_per_location(sequence_length,
 # def max1location_per_value(sequence_length
 #                            , cnf
 #                            , vpool
-#                            , matrix_size):
+#                            , matrix_dimensions):
 #     print("max1location_per_value()")
 #     for index in range(sequence_length):  # take 1 index
-#         for x in range(matrix_size):
-#             for y in range(matrix_size):  # take 1 cell
-#                 for x2 in range(matrix_size):
-#                     for y2 in range(matrix_size):  # take 2nd cell
+#         for x in range(matrix_dimensions):
+#             for y in range(matrix_dimensions):  # take 1 cell
+#                 for x2 in range(matrix_dimensions):
+#                     for y2 in range(matrix_dimensions):  # take 2nd cell
 #                         if not (x == x2 and
 #                                 y == y2):
 #                             # cell 1 and 2
@@ -469,12 +469,12 @@ def solve(seq,
 
     # contraintes ##########################
     matrix_size = sequence_length
-    # matrix_size = get_matrix_size(sequence_length)
-    print("matrix_size", matrix_size)
+    # matrix_dimensions = get_matrix_dimensions(sequence_length)
+    print("matrix_dimensions", matrix_size)
     cnf = max1value_per_location(sequence_length, cnf, vpool,
                                  matrix_size)
     # cnf = max1location_per_value(sequence_length, cnf, vpool,
-    #                              matrix_size)
+    #                              matrix_dimensions)
     cnf = all_values_used(sequence_length
                           , cnf
                           , vpool
