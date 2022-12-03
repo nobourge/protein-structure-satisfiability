@@ -525,10 +525,10 @@ def set_clauses(seq,
                 , bound
                 , matrix_dimensions
                 ):
-    all_values_used(sequence_length
-                    , cnf
-                    , vpool
-                    , matrix_dimensions)
+    # all_values_used(sequence_length
+    #                 , cnf
+    #                 , vpool
+    #                 , matrix_dimensions)
     # sequence elements 2 by 2 are neighbors
     cnf = sequence_neighboring_maintain(sequence_length,
                                         cnf,
@@ -540,14 +540,14 @@ def set_clauses(seq,
                                  , cnf
                                  , vpool
                                  , matrix_dimensions)
-    cnf = max1location_per_value(sequence_length
-                                 , cnf
-                                 , vpool
-                                 , matrix_dimensions)
-    # cnf = one_location_per_value_min_and_max(sequence_length
-    #                                          , cnf
-    #                                          , vpool
-    #                                          , matrix_dimensions)
+    # cnf = max1location_per_value(sequence_length
+    #                              , cnf
+    #                              , vpool
+    #                              , matrix_dimensions)
+    cnf = one_location_per_value_min_and_max(sequence_length
+                                             , cnf
+                                             , vpool
+                                             , matrix_dimensions)
     cnf = set_min_cardinality(
         seq
         , sequence_length
@@ -946,7 +946,7 @@ def dichotomy(seq
     # logging.debug("lower_bound", lower_bound)
     sol = solve(seq, high_bound)
     if sol is not None:
-        return high_bound
+        return sol
 
     # while high_bound - lower_bound == 1:
     while 1 < high_bound - lower_bound:
@@ -956,15 +956,15 @@ def dichotomy(seq
         if new_sol is not None:
             sol = new_sol
             lower_bound = mid_bound
-            logging.debug("lower_bound", lower_bound)
+            logging.debug("lower_bound {}".format(lower_bound))
 
         else:
             high_bound = mid_bound
-            logging.debug("high_bound", high_bound)
+            logging.debug("high_bound {}".format(high_bound))
 
     if sol is not None:
         logging.info("dichotomy() sol is not None")
-        return lower_bound-1
+        return sol
     return None
 
     # 1 2 3 4 5
@@ -981,15 +981,14 @@ def incremental_search(seq
     # si aucune solution matrix_dimensions'existe, retourne None
     # cette fonction utilise une recherche incrémentale
     # pour trouver un plongement de score au moins 'lower_bound'
-    sol = solve(seq, lower_bound)
+    new_sol = solve(seq, lower_bound)
+    sol = new_sol
 
-    while sol is not None:
+    while new_sol is not None:
+        sol = new_sol
         lower_bound += 1
-        sol = solve(seq, lower_bound)
-    #if sol is not None:
-    logging.info("incremental_search() sol is not None")
-    return lower_bound-1
-    #return None
+        new_sol = solve(seq, lower_bound)
+    return sol
 
 
 def compute_max_score(seq
@@ -1008,11 +1007,17 @@ def compute_max_score(seq
     # contacts_quantity_min, contacts_quantity_max =
     # get_contact_quantity_min_and_max(seq)
     if method == "incremental":
-        score_best = incremental_search(seq)
+        sol = incremental_search(seq)
     else:
-        score_best = dichotomy(seq)
+        sol = dichotomy(seq)
+    if sol is None:
+        return 0
 
-    if display: print("score_best: {}".format(score_best))
+    matrix_dimensions = get_matrix_dimensions(seq
+                                              , len(seq))
+    score_best = get_score(sol
+                           , matrix_dimensions)
+
     return score_best
 
 
@@ -1068,19 +1073,6 @@ def test_code():
         ('10110011010010001110', 11)
     ]
     # chaque couple de cette liste est formee d'une sequence et de son meilleur score
-
-    # for (seq, maxbound) in examples:
-    #     if not seq in ["011010111110011"
-    #     , "0010110"
-    #     , "011001101"
-    #     , "000110111"
-    #     , "0011110010110110"
-    #     , "01010101110"
-    #     , "1000101110001"
-    #     , "11010101011110"
-    #            ]:
-    #         print(", \'"+seq+"\'")
-    # return 0
 
     TIMEOUT = 10
 
@@ -1248,23 +1240,9 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 ##################################################################################################################################################
-#
-# exist_sol("1011011011", 7)  #
-# compute_max_score("1011011011")  # 2
 
-# exist_sol("111111111111111", 23)  #
-# exist_sol("01111100010010101", 7)  # max contact 13
-# exist_sol("00", 0)
-# exist_sol('1', 0)
-# exist_sol('01000', 0)
-# exist_sol("00111", 1)
-# compute_max_score("0010110")  # 2
-# exist_sol("01010101110")  # 2
-# compute_max_score("01010101110")  # 2
-# compute_max_score("000110111")  # 2
-# compute_max_score("000110111")  # 2
-
-# test_code()
+test_code()
+# compute_max_score('0011110010110110')
 
 if test:
     print("Let's test your code")
@@ -1282,6 +1260,7 @@ elif options.bound is not None:
         print("SAT")
         # if options.display:
 
+
     print("FIN DU TEST DE SATISFIABILITE")
 
 elif not incremental:
@@ -1293,16 +1272,22 @@ elif not incremental:
         if options.sequence is not None:
             print(
                 "Calcul du meilleur score pour la sequence " + options.sequence)
-            compute_max_score(options.sequence, "dichotomy",
+            score_best = compute_max_score(options.sequence,
+                                           "dichotomy",
                               options.display)
+            print("Meilleur score: " + str(score_best))
     print("FIN DU CALCUL DU MEILLEUR SCORE")
 
 elif not test:
     # Pareil que dans le cas precedent mais avec la methode incrementale
     print("DEBUT DU CALCUL DU MEILLEUR SCORE PAR METHODE INCREMENTALE")
     if len(sys.argv) > 1:
-        print(
-            "Calcul du meilleur score pour la sequence " + options.sequence)
-        compute_max_score(options.sequence, "incremental",
-                          options.display)
+        if options.sequence is not None:
+
+            print(
+                "Calcul du meilleur score pour la sequence " + options.sequence)
+            score_best = compute_max_score(options.sequence,
+                                         "incremental",
+                              options.display)
+            print("Meilleur score: " + str(score_best))
     print("FIN DU CALCUL DU MEILLEUR SCORE")
