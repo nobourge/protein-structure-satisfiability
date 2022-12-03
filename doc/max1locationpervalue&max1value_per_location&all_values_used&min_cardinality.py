@@ -525,7 +525,7 @@ def get_interpretation(solver
 
 #
 solve("00", 0)
-# solve("100010100", 0)
+# get_solution_representation("100010100", 0)
 solve("111", 1)
 solve("1001", 1)
 solve("111001", 1)

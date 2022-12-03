@@ -490,6 +490,6 @@ def get_interpretation(solver
     return interpretation
 
 #
-# solve("00", 0)
-# solve("100010100", 0)
+# get_solution_representation("00", 0)
+# get_solution_representation("100010100", 0)
 solve("1001", 0)
