@@ -1012,7 +1012,7 @@ def compute_max_score(seq
     else:
         score_best = dichotomy(seq)
 
-    if display: logging.info("__________________________________score_best: {}".format(score_best))
+    if display: print("score_best: {}".format(score_best))
     return score_best
 
 
