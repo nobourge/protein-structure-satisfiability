@@ -964,7 +964,7 @@ def dichotomy(seq
 
     if sol is not None:
         logging.info("dichotomy() sol is not None")
-        return lower_bound-1
+        return lower_bound
     return None
 
     # 1 2 3 4 5
