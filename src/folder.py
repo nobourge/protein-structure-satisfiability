@@ -1126,19 +1126,21 @@ def incremental_search(seq
                                           , vpool
                                           , matrix_dimensions
                                           )[0]
+
     sol = new_sol
 
     while new_sol is not None:
         sol = new_sol
         lower_bound += 1
-        cnf = no_bound_cnf
+        #cnf = no_bound_cnf
         vpool = no_bound_vpool
-        new_sol = get_solution(
-            seq,
-            lower_bound
-            , cnf
-            , vpool
-        )[0]
+        new_sol = get_solution_representation(seq
+                                           , len(seq)
+                                           , lower_bound
+                                           , solver
+                                           , vpool
+                                           , matrix_dimensions
+                                           )
     return sol
 
 
@@ -1171,7 +1173,6 @@ def compute_max_score(seq
     if display:
         print("score: {}".format(score_best))
         print("plongement: {}".format(sol))
-
     return score_best
 
 
@@ -1393,7 +1394,7 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
-test_code()
+#test_code()
 # compute_max_score('11010101011110')
 # compute_max_score('0011110010110110')
 # compute_max_score('00')
