@@ -1170,8 +1170,8 @@ def compute_max_score(seq
                                               , len(seq))
     score_best = get_score(sol
                            , matrix_dimensions)
+    print("score: {}".format(score_best))
     if display:
-        print("score: {}".format(score_best))
         print("plongement: {}".format(sol))
     return score_best
 
