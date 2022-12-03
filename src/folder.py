@@ -1416,11 +1416,15 @@ elif options.bound is not None:
     # Si l'option d'affichage est active,
     #   alors il faut egalement afficher une solution
     print("DEBUT DU TEST DE SATISFIABILITE")
-    res = get_solution_representation(options.sequence, options.bound)
+    l = len(options.sequence)
+    cnf, vpool = get_no_bound_cnf_vpool(options.sequence,l)
+    _, solver, _, _, matrix_dimensions = get_solution(options.sequence,0, cnf, vpool)
+    print(options.bound)
+    res = get_solution_representation(options.sequence, l, options.bound, solver, vpool, matrix_dimensions)
     if res is not None:
         print("SAT")
-        # if options.display:
-
+        if options.display:
+            print(res)
     print("FIN DU TEST DE SATISFIABILITE")
 
 elif not incremental:
