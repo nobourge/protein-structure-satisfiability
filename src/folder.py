@@ -946,7 +946,7 @@ def dichotomy(seq
     # logging.debug("lower_bound", lower_bound)
     sol = solve(seq, high_bound)
     if sol is not None:
-        return sol
+        return high_bound
 
     # while high_bound - lower_bound == 1:
     while 1 < high_bound - lower_bound:
@@ -964,7 +964,7 @@ def dichotomy(seq
 
     if sol is not None:
         logging.info("dichotomy() sol is not None")
-        return sol
+        return lower_bound-1
     return None
 
     # 1 2 3 4 5
@@ -986,10 +986,10 @@ def incremental_search(seq
     while sol is not None:
         lower_bound += 1
         sol = solve(seq, lower_bound)
-    if sol is not None:
-        logging.info("incremental_search() sol is not None")
-        return sol
-    return None
+    #if sol is not None:
+    logging.info("incremental_search() sol is not None")
+    return lower_bound-1
+    #return None
 
 
 def compute_max_score(seq
@@ -1008,18 +1008,11 @@ def compute_max_score(seq
     # contacts_quantity_min, contacts_quantity_max =
     # get_contact_quantity_min_and_max(seq)
     if method == "incremental":
-        sol = incremental_search(seq)
+        score_best = incremental_search(seq)
     else:
-        sol = dichotomy(seq)
-    if sol is None:
-        return 0
+        score_best = dichotomy(seq)
 
-    matrix_dimensions = get_matrix_dimensions(seq
-                                              , len(seq))
-    score_best = get_score(sol
-                           , matrix_dimensions)
-
-    logging.info("score_best: {}".format(score_best))
+    if display: logging.info("__________________________________score_best: {}".format(score_best))
     return score_best
 
 
