@@ -967,7 +967,8 @@ def incremental_search(seq
 
 def compute_max_score(seq
                       , method="dichotomy"
-                      , display=True):
+                      , display=False
+                      ):
     # calcul le meilleur score pour la sequence seq,
     # il doit donc retourne un entier,
     # methode utilisee: dichotomie par defaut,
