@@ -2,6 +2,7 @@
 # PROJET: repliage de proteines
 # Robin-Gilles Becker & Noé Bourgeois
 
+import sys
 import copy
 # necessite l'installation de
 # la librairie PySAT et de
