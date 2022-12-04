@@ -14,7 +14,6 @@ from pysat.solvers import Minisat22
 from pysat.card import *
 from optparse import OptionParser
 import func_timeout
-import sys
 
 # from auto_indent import *
 
