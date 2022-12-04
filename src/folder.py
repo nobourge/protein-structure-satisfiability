@@ -14,9 +14,9 @@ from pysat.card import *
 from optparse import OptionParser
 import func_timeout
 
-from auto_indent import *
+# from auto_indent import *
 
-sys.stdout = AutoIndent(sys.stdout)
+# sys.stdout = AutoIndent(sys.stdout)
 
 # OPTIONS POUR L'UTILISATION EN LIGNE DE COMMANDE
 
