@@ -3,7 +3,6 @@
 # Robin-Gilles Becker & Noé Bourgeois
 
 import copy
-import time
 # necessite l'installation de
 # la librairie PySAT et de
 # la librairie func_timeout
@@ -776,9 +775,6 @@ def get_solution_representation(seq
     new_score = get_score(value_matrix
                           , matrix_dimensions)
     if new_score >= bound:
-        """if options.display:
-            print("Solution possible:")
-            print(get_representation(value_matrix, matrix_dimensions))"""
         return value_matrix
 
 def get_interpretation(solver
@@ -868,14 +864,8 @@ def dichotomy(seq
                                                           sequence_length=len(
                                                               seq)
                                                           )
-    # # timer start
-    # start_time = time.time()
-    # cnf = copy.deepcopy(no_bound_cnf)
-    # vpool = copy.deepcopy(no_bound_vpool)
-    # # timer end
-    # end_time = time.time()
-    cnf = no_bound_cnf
-    vpool = no_bound_vpool
+    cnf = copy.deepcopy(no_bound_cnf)
+    vpool = copy.deepcopy(no_bound_vpool)
     sol, solver, cnf, vpool, matrix_dimensions = get_solution(seq,
                                                               high_bound
                                                               , cnf
@@ -934,8 +924,8 @@ def incremental_search(seq
                                                           sequence_length=len(
                                                               seq)
                                                           )
-    cnf = no_bound_cnf
-    vpool = no_bound_vpool
+    cnf = copy.deepcopy(no_bound_cnf)
+    vpool = copy.deepcopy(no_bound_vpool)
     # ajout de la contrainte de borne courante et resolution
     new_sol, new_solver, cnf, new_vpool, matrix_dimensions = \
         get_solution(seq,
@@ -947,7 +937,6 @@ def incremental_search(seq
     sol= new_sol
 
     while new_sol is not None:
-        print("solution found with bound", lower_bound)
         sol = new_sol
         valid_solver = new_solver
         valid_vpool = new_vpool
@@ -964,9 +953,7 @@ def incremental_search(seq
             vpool
             )
 
-
     if sol is not None:
-        print()
         return get_solution_representation(seq
                                           , len(seq)
                                           , lower_bound - 1
@@ -974,7 +961,6 @@ def incremental_search(seq
                                           , valid_vpool
                                           , matrix_dimensions
                                           )
-    print("Il n'existe pas de solution")
     return None
 
 
@@ -999,20 +985,13 @@ def compute_max_score(seq
     score_best = get_score(sol
                            , matrix_dimensions)
     if display:
-        print("plongement: \n{}".format(sol))
+        print("\n plongement: \n{}".format(sol))
     return score_best
-
 
 ####################################################################
 ########### CE CODE NE DOIT PAS ETRE MODIFIE #######################
 ####################################################################
 def test_code():
-    satisfiability_echec = []
-    unsatisfiability_timeout = []
-    unsatisfiability_exception = []
-    max_score_echec = []
-    max_score_timeout = []
-    max_score_exception = []
 
     examples = [
         ('00', 0),
@@ -1092,14 +1071,12 @@ def test_code():
                 # satisfiability_success.append(seq)
             else:
                 print(" ---> echec")
-                satisfiability_echec.append(seq)
         except func_timeout.FunctionTimedOut:
             timeouts_sat_tests += 1
             print(" ---> timeout")
         except Exception as e:
             exceptions_sat_tests += 1
             print(" ---> exception levee")
-        print("_" * 80)
 
     # sur cet ensemble de tests, votre methode devrait toujours
     # retourner qu'il matrix_dimensions'existe pas de solution
@@ -1120,11 +1097,9 @@ def test_code():
         except func_timeout.FunctionTimedOut:
             timeouts_unsat_tests += 1
             print(" ---> timeout")
-            unsatisfiability_timeout.append(seq)
         except Exception as e:
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
-            unsatisfiability_exception.append(seq)
 
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
@@ -1143,17 +1118,13 @@ def test_code():
                 print(" ---> succes")
             else:
                 print(" ---> echec")
-                max_score_echec.append(seq)
         except func_timeout.FunctionTimedOut:
             timeouts_maxscores += 1
             print(" ---> timeout")
 
-            max_score_timeout.append(seq)
-
         except Exception as e:
             exceptions_maxscores += 1
             print(" ---> exception levee")
-            max_score_exception.append(seq)
 
     print("\nRESULTATS TESTS\n")
 
@@ -1163,54 +1134,17 @@ def test_code():
     print("Nombre de timeouts: " + str(timeouts_sat_tests))
     print("Nombre d'exceptions: " + str(exceptions_sat_tests) + "\n")
 
-    if len(satisfiability_echec) > 0:
-        print("Instances avec solutions erroneement repondues: ")
-        for seq in satisfiability_echec:
-            print(seq)
-        print("\n")
-
     print("Instances sans solution correctement repondues: " + str(
         unsat_tests_success) + " sur " + str(
         total_unsat_tests) + " tests realises")
     print("Nombre de timeouts: " + str(timeouts_unsat_tests))
     print("Nombre d'exceptions: " + str(exceptions_unsat_tests) + "\n")
 
-    if len(unsatisfiability_timeout) > 0:
-        print("Instances sans solution erroneement repondues: ")
-        for seq in unsatisfiability_timeout:
-            print(seq)
-        print("\n")
-
-    if len(unsatisfiability_exception) > 0:
-        print("Instances sans solution avec exception levee: ")
-        for seq in unsatisfiability_exception:
-            print(seq)
-        print("\n")
-
     print("Meilleurs scores correctement calcules: " + str(
         correct_maxscores) + " sur " + str(
         total_maxscores) + " tests realises")
     print("Nombre de timeouts: " + str(timeouts_maxscores))
     print("Nombre d'exceptions: " + str(exceptions_maxscores) + "\n")
-
-    if len(max_score_echec) > 0:
-        print("Meilleurs scores erronement calcules: ")
-        for seq in max_score_echec:
-            print(seq)
-        print("\n")
-
-    if len(max_score_timeout) > 0:
-        print("Meilleurs scores non calcules a cause de timeout: ")
-        for seq in max_score_timeout:
-            print(seq)
-        print("\n")
-
-    if len(max_score_exception) > 0:
-        print("Meilleurs scores non calcules a cause d'exceptions: ")
-        for seq in max_score_exception:
-            print(seq)
-        print("\n")
-
 
 ##################################################################################################################################################
 ##################################################################################################################################################
