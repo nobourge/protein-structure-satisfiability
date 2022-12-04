@@ -947,7 +947,6 @@ def incremental_search(seq
     sol= new_sol
 
     while new_sol is not None:
-        print("solution found with bound", lower_bound)
         sol = new_sol
         valid_solver = new_solver
         valid_vpool = new_vpool
