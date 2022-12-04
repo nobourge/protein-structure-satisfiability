@@ -1,6 +1,6 @@
 # cours informatique fondamentale 2021-2022
 # PROJET: repliage de proteines
-# Robin-Gilles Becker &
+# Robin-Gilles Becker & Noé Bourgeois
 
 import copy
 import time
@@ -661,14 +661,10 @@ def get_score(value_matrix
     # value_matrix
     return new_score
 
-
+    # creation de cnf et vpool sans contrainte de borne
 def get_no_bound_cnf_vpool(seq
                            , sequence_length
                            ):
-    # todo
-    # solver = Minisat22(use_timer=True)
-    # solver = Glucose4(use_timer=True)
-
     # variables ##########################
     vpool = IDPool(
         start_from=1)  # pour le stockage des identifiants entiers des couples (i,j)
@@ -872,12 +868,14 @@ def dichotomy(seq
                                                           sequence_length=len(
                                                               seq)
                                                           )
-    # timer start
-    start_time = time.time()
-    cnf = copy.deepcopy(no_bound_cnf)
-    vpool = copy.deepcopy(no_bound_vpool)
-    # timer end
-    end_time = time.time()
+    # # timer start
+    # start_time = time.time()
+    # cnf = copy.deepcopy(no_bound_cnf)
+    # vpool = copy.deepcopy(no_bound_vpool)
+    # # timer end
+    # end_time = time.time()
+    cnf = no_bound_cnf
+    vpool = no_bound_vpool
     sol, solver, cnf, vpool, matrix_dimensions = get_solution(seq,
                                                               high_bound
                                                               , cnf
@@ -929,6 +927,8 @@ def incremental_search(seq
     # si aucune solution matrix_dimensions'existe, retourne None
     # cette fonction utilise une recherche incrémentale
     # pour trouver un plongement de score au moins 'lower_bound'
+
+    # creation de cnf et vpool sans contrainte de borne
     no_bound_cnf, no_bound_vpool = get_no_bound_cnf_vpool(seq
                                                           ,
                                                           sequence_length=len(
@@ -936,35 +936,46 @@ def incremental_search(seq
                                                           )
     cnf = no_bound_cnf
     vpool = no_bound_vpool
-    new_sol, solver, cnf, vpool, matrix_dimensions = get_solution(seq,
+    # ajout de la contrainte de borne courante et resolution
+    new_sol, new_solver, cnf, new_vpool, matrix_dimensions = \
+        get_solution(seq,
                                                                   lower_bound
                                                                   , cnf
                                                                   ,
                                                                   vpool
                                                                   )
-    new_sol = get_solution_representation(seq
-                                          , len(seq)
-                                          , lower_bound
-                                          , solver
-                                          , vpool
-                                          , matrix_dimensions
-                                          )[0]
-
-    sol = new_sol
+    sol= new_sol
 
     while new_sol is not None:
+        print("solution found with bound", lower_bound)
         sol = new_sol
+        valid_solver = new_solver
+        valid_vpool = new_vpool
         lower_bound += 1
-        #cnf = no_bound_cnf
+        cnf = no_bound_cnf
         vpool = no_bound_vpool
-        new_sol = get_solution_representation(seq
-                                           , len(seq)
-                                           , lower_bound
-                                           , solver
-                                           , vpool
-                                           , matrix_dimensions
-                                           )
-    return sol
+
+        # ajout de la contrainte de borne courante et resolution
+        new_sol, new_solver, cnf, new_vpool, new_matrix_dimensions = get_solution(
+            seq,
+            lower_bound
+            , cnf
+            ,
+            vpool
+            )
+
+
+    if sol is not None:
+        print()
+        return get_solution_representation(seq
+                                          , len(seq)
+                                          , lower_bound - 1
+                                          , valid_solver
+                                          , valid_vpool
+                                          , matrix_dimensions
+                                          )
+    print("Il n'existe pas de solution")
+    return None
 
 
 def compute_max_score(seq
@@ -1114,7 +1125,6 @@ def test_code():
             exceptions_unsat_tests += 1
             print(" ---> exception levee")
             unsatisfiability_exception.append(seq)
-        print("_" * 80)
 
     # sur cet ensemble de tests, votre methode devrait retourner le meilleur score.
     # Vous pouvez utiliser la methode par dichotomie ou incrementale, au choix
@@ -1144,8 +1154,6 @@ def test_code():
             exceptions_maxscores += 1
             print(" ---> exception levee")
             max_score_exception.append(seq)
-
-        print("_" * 80)
 
     print("\nRESULTATS TESTS\n")
 
@@ -1210,15 +1218,8 @@ def test_code():
 ##################################################################################################################################################
 ##################################################################################################################################################
 
-#test_code()
-# compute_max_score('11010101011110')
-# compute_max_score('0011110010110110')
-# compute_max_score('00')
-# compute_max_score('1011011011') # 8
-# exist_sol('1011011011', 8)  # 8
-# exist_sol('0110111001000101', 8)  # 8
-# exist_sol('11010101011110', 10)  # 8
-# exist_sol('00', 1)  # 8
+test_code()
+# compute_max_score('011001100010',"incremental")
 
 
 if test:
