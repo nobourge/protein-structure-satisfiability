@@ -230,9 +230,6 @@ def sequence_neighboring_maintain(sequence_length
     return cnf
 
 
-# def is_in_matr
-
-
 def are_neighbors(i, j, k, m):
     # retourne True si et seulement si
     # (i, j) et (k, l) sont voisins
@@ -315,10 +312,7 @@ def get_pairs_potential_neighborings_disjunctions_symbols(seq
     return None
 
 
-# vous pouvez utiliser les methodes de la classe pysat.card pour
-# creer des contraintes de cardinalites (au moins k, au plus k,...)
-
-# fonction card
+# fonction pysat.card
 # qui prend en entree un
 # ensemble fini de variables X et un entier k,
 # et qui retourne un
@@ -554,29 +548,8 @@ def get_matrix_dimensions(seq
 
     else:
         y = y + 2
-
-    #
-    # if seq in ["011010111110011"
-    #     , "0010110"
-    #     , "011001101"
-    #     , "000110111"
-    #     , "0011110010110110"
-    #     , "01010101110"
-    #     , "1000101110001"
-    #     , "11010101011110"
-    #            ]:
-    #     y = math.ceil(math.sqrt(sequence_length)) + 1
-    #
-    # elif seq in ["0110111001000101"]:
-    #     y = math.ceil(math.sqrt(sequence_length)) + 2
-    # else:
-    #     y = math.ceil(math.sqrt(sequence_length))  # from github copilot
     x = y
     return x, y
-    # # todo cubic square root of squared sequence_length
-    # # todo return int(sequence_length ** (2 / 3)) # ~~from robin petit
-    # # return 1 + sequence_length // 4 if sequence_length >= 12 else sequence_length
-    # return math.ceil((1 + sequence_length) / 2)   # from mkovel
 
 
 def get_index_matrix(sequence_length
@@ -585,7 +558,6 @@ def get_index_matrix(sequence_length
                      , sol):
     matrix = numpy.matrix(numpy.zeros(shape=(matrix_dimensions[1],
                                              matrix_dimensions[0])))
-    # matrix = [[0 for x in range(sequence_length)] for y in range(sequence_length)]
     for y in range(matrix_dimensions[1]):
         for x in range(matrix_dimensions[0]):
             location_valued = False
@@ -1207,3 +1179,5 @@ elif not test:
                                            options.display)
             print("Meilleur score: " + str(score_best))
     print("FIN DU CALCUL DU MEILLEUR SCORE")
+
+ # todo readd logging 
